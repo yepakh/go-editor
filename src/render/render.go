@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/gdamore/tcell/v3"
-	"github.com/yepakh/notepad/src/buffer"
+	"github.com/yepakh/go-editor/src/buffer"
 )
 
 var screen tcell.Screen
@@ -42,7 +42,9 @@ func Sync() { screen.Sync() }
 
 func CloseScreen() { screen.Fini() }
 
-func Reset() { screen.Clear() }
+func Reset() {
+	screen.Clear()
+}
 
 func SetCharacter(x, y int, char rune) { screen.SetContent(x, y, char, nil, tcell.StyleDefault) }
 

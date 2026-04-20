@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 
 	"github.com/gdamore/tcell/v3"
-	buffer "github.com/yepakh/notepad/src/buffer"
-	"github.com/yepakh/notepad/src/cursor"
-	"github.com/yepakh/notepad/src/render"
+	buffer "github.com/yepakh/go-editor/src/buffer"
+	"github.com/yepakh/go-editor/src/cursor"
+	"github.com/yepakh/go-editor/src/render"
 )
 
 type Editor struct {
@@ -26,23 +26,20 @@ func (ed *Editor) Init() error {
 	return ed.InitFromDir(cwd)
 }
 
-func (ed *Editor) Start() {
+func (ed *Editor) Start() chan struct{} {
 	eventChan := render.InitScreen()
 
 	ed.displayedBuffer = ed.loadedBuffers[0]
-	cursor.InitBuffer(ed.displayedBuffer)
+	render.RenderBuffer(ed.displayedBuffer, 0, 0)
+	cursor.InitCursor(ed.displayedBuffer)
 
-	handleUserInput(eventChan, ed.displayedBuffer)
+	quit := make(chan struct{})
+	go ed.handleUserInput(eventChan, ed.displayedBuffer, quit)
+	return quit
 }
 
 func (ed *Editor) Close() {
-	for _, v := range ed.loadedBuffers {
-		err := v.Close(false, false)
-
-		if err != nil {
-			//handle
-		}
-	}
+	render.CloseScreen()
 }
 
 func (ed *Editor) InitFromDir(dir string) error {
@@ -57,7 +54,7 @@ func (ed *Editor) InitFromFile(filePath string) error {
 	return ed.loadBuffer(filePath)
 }
 
-func handleUserInput(evChan <-chan tcell.Event, buf *buffer.Buffer) {
+func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *buffer.Buffer, quitCh chan struct{}) {
 	for {
 		event := <-evChan
 
@@ -67,13 +64,27 @@ func handleUserInput(evChan <-chan tcell.Event, buf *buffer.Buffer) {
 				// Handle character
 			} else if cursor.HandleCursorEvent(ev.Key(), buf) {
 				continue
-			} else if ev.Key() == tcell.KeyCancel {
-				return
+			} else if ev.Key() == tcell.KeyCtrlC {
+				if ed.handleCloseEvent() {
+					close(quitCh)
+				}
 			}
 		case *tcell.EventResize:
 			render.Sync()
 		}
 	}
+}
+
+func (ed *Editor) handleCloseEvent() bool {
+	for _, v := range ed.loadedBuffers {
+		err := v.Close(false, false)
+
+		if err != nil {
+			//handle
+		}
+	}
+
+	return true
 }
 
 func (ed *Editor) loadBuffer(filePath string) error {

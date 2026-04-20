@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	editor "github.com/yepakh/notepad/src"
+	editor "github.com/yepakh/go-editor/src"
 )
 
 func main() {
@@ -18,13 +18,15 @@ func main() {
 		editor.InitFromFile(path)
 	}
 
-	editor.Start()
+	quitCh := editor.Start()
+
+	<-quitCh
 	editor.Close()
 }
 
 func getPath() string {
 	args := os.Args
-	if len(args) < 1 {
+	if len(args) < 2 {
 		return ""
 	}
 

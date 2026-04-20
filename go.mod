@@ -1,4 +1,4 @@
-module github.com/yepakh/notepad
+module github.com/yepakh/go-editor
 
 go 1.26.1
 

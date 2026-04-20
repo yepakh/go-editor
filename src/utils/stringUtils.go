@@ -1,12 +1,13 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
-
-	customerrors "github.com/yepakh/notepad/src/customErrors"
 )
+
+var ErrEmptyPath = errors.New("path is empty")
 
 func IsValidPathOrEmpty(path string) error {
 	if strings.ContainsAny(path, "\x00") {
@@ -16,7 +17,7 @@ func IsValidPathOrEmpty(path string) error {
 	clean := filepath.Clean(path)
 
 	if path == "" || clean == "." {
-		return fmt.Errorf("'%v' %v", path, customerrors.ErrEmptyPath)
+		return ErrEmptyPath
 	}
 
 	return nil

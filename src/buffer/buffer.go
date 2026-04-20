@@ -5,8 +5,7 @@ import (
 	"os"
 	"unicode/utf8"
 
-	customerrors "github.com/yepakh/notepad/src/customErrors"
-	"github.com/yepakh/notepad/src/utils"
+	"github.com/yepakh/go-editor/src/utils"
 )
 
 type Buffer struct {
@@ -16,7 +15,7 @@ type Buffer struct {
 }
 
 func Load(filePath string) (*Buffer, error) {
-	if err := utils.IsValidPathOrEmpty(filePath); err != nil && !errors.Is(err, customerrors.ErrEmptyPath) {
+	if err := utils.IsValidPathOrEmpty(filePath); err != nil && !errors.Is(err, utils.ErrEmptyPath) {
 		return nil, err
 	}
 

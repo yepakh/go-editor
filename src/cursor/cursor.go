@@ -2,8 +2,8 @@ package cursor
 
 import (
 	"github.com/gdamore/tcell/v3"
-	"github.com/yepakh/notepad/src/buffer"
-	"github.com/yepakh/notepad/src/render"
+	"github.com/yepakh/go-editor/src/buffer"
+	"github.com/yepakh/go-editor/src/render"
 )
 
 type Cursor struct {
@@ -16,11 +16,7 @@ type Cursor struct {
 
 var ActiveCursor = Cursor{0, 0, 0, 0, 0}
 
-func (cursor *Cursor) GetRelativeCursorCoords() (x, y int) {
-	return cursor.charPos - cursor.charOffset, cursor.line - cursor.lineOffset
-}
-
-func (cursor *Cursor) GetAbsoluteCursorCoords() (x, y int) {
+func (cursor *Cursor) GetAbsoluteCursorCoords() (charPos, line int) {
 	return cursor.charPos, cursor.line
 }
 
@@ -55,7 +51,7 @@ func (cursor *Cursor) SetCursorTo(targetX, targetY int, charChanged bool, buf *b
 		requiresReRender = true
 	}
 
-	scrX, scrY := cursor.GetRelativeCursorCoords()
+	scrX, scrY := cursor.getRelativeCursorCoords()
 	render.SetCursor(scrX, scrY)
 
 	if requiresReRender {
@@ -98,6 +94,10 @@ func (cursor *Cursor) setPosition(targetX, targetY int, charChanged bool, buf *b
 	return true
 }
 
+func (cursor *Cursor) getRelativeCursorCoords() (x, y int) {
+	return cursor.charPos - cursor.charOffset, cursor.line - cursor.lineOffset
+}
+
 var eventHandlers = map[tcell.Key]func(*buffer.Buffer){
 	tcell.KeyUp:    func(buf *buffer.Buffer) { ActiveCursor.MoveCursor(0, -1, buf) },
 	tcell.KeyDown:  func(buf *buffer.Buffer) { ActiveCursor.MoveCursor(0, 1, buf) },
@@ -116,7 +116,6 @@ func HandleCursorEvent(key tcell.Key, buf *buffer.Buffer) bool {
 	return true
 }
 
-func InitBuffer(buf *buffer.Buffer) {
-	render.RenderBuffer(buf, ActiveCursor.lineOffset, ActiveCursor.charOffset)
+func InitCursor(buf *buffer.Buffer) {
 	ActiveCursor.MoveCursor(0, 0, buf)
 }

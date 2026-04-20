@@ -29,6 +29,7 @@ go.work.sum
 .vscode/
 *.swp
 *.swo
+*.vim
 
 # OS
 .DS_Store
