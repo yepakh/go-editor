@@ -1,6 +1,7 @@
 package render
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gdamore/tcell/v3"
@@ -9,6 +10,7 @@ import (
 
 var screen tcell.Screen
 var theme Theme
+var rightSidePadding int = 6
 
 func InitScreen() <-chan tcell.Event {
 	var err error
@@ -34,8 +36,9 @@ func RenderBuffer(buf *buffer.Buffer, lineOff, charOff int) {
 	width, height := GetBufferSceenSize()
 	for i := 0; i < height && lineOff+i < len(buf.Lines); i++ {
 		line := buf.Lines[lineOff+i]
+		SetLineNumber(lineOff+i, i)
 		for j := 0; j < width && j+charOff < len(line); j++ {
-			screen.SetContent(j, i, line[j], nil, tcell.StyleDefault)
+			screen.SetContent(j+rightSidePadding, i, line[j], nil, tcell.StyleDefault)
 		}
 	}
 
@@ -48,6 +51,24 @@ func CloseScreen() { screen.Fini() }
 
 func Reset() {
 	screen.Clear()
+}
+
+func SetLineNumber(lineNum, linePos int) {
+	padding := rightSidePadding
+	lineStr := fmt.Sprint(lineNum + 1)
+	lineNumLen := len(lineStr)
+
+	screen.SetContent(padding-1, linePos, 0, nil, theme.rightPanelStyle)
+	padding--
+
+	for i := range padding - 1 {
+		if i < lineNumLen {
+			r := rune(lineStr[lineNumLen-i-1])
+			screen.SetContent(padding-i-1, linePos, r, nil, theme.rightPanelStyle)
+		} else {
+			screen.SetContent(padding-i-1, linePos, 0, nil, theme.rightPanelStyle)
+		}
+	}
 }
 
 func SetFooter(filepath string) {
@@ -65,11 +86,11 @@ func SetFooter(filepath string) {
 
 func GetBufferSceenSize() (width, height int) {
 	w, h := screen.Size()
-	return w, h - 1
+	return w - rightSidePadding, h - 1
 }
 
 func SetCursor(x, y int) {
-	screen.ShowCursor(x, y)
+	screen.ShowCursor(x+rightSidePadding, y)
 	screen.Show()
 }
 

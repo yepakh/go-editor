@@ -5,8 +5,9 @@ import (
 )
 
 type Theme struct {
-	contentStyle tcell.Style
-	footerStyle  tcell.Style
+	contentStyle    tcell.Style
+	footerStyle     tcell.Style
+	rightPanelStyle tcell.Style
 }
 
 func InitTheme() Theme {
@@ -20,8 +21,12 @@ func tokyoNightTheme() Theme {
 
 	footStyle := tcell.Style{}
 	footStyle = footStyle.Foreground(tcell.NewRGBColor(22, 22, 30))
-	footStyle = footStyle.Foreground(tcell.NewRGBColor(122, 162, 247))
-	return Theme{contStyle, footStyle}
+	footStyle = footStyle.Background(tcell.NewRGBColor(122, 162, 247))
+
+	rPanStyle := tcell.Style{}
+	rPanStyle = rPanStyle.Foreground(tcell.NewRGBColor(68, 75, 107))
+	rPanStyle = rPanStyle.Background(tcell.NewRGBColor(26, 27, 38))
+	return Theme{contStyle, footStyle, rPanStyle}
 }
 
 func (t *Theme) GetTextStyle() tcell.Style {
