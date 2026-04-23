@@ -8,6 +8,7 @@ import (
 )
 
 var screen tcell.Screen
+var theme Theme
 
 func InitScreen() <-chan tcell.Event {
 	var err error
@@ -21,17 +22,20 @@ func InitScreen() <-chan tcell.Event {
 	}
 
 	setTheme()
+	SetCursor(0, 0)
 
 	return screen.EventQ()
 }
 
-func RenderBuffer(buff *buffer.Buffer, lineOff, charOff int) {
+func RenderBuffer(buf *buffer.Buffer, lineOff, charOff int) {
 	screen.Clear()
-	width, height := screen.Size()
-	for i := 0; i < height && lineOff+i < len(buff.Lines); i++ {
-		line := buff.Lines[lineOff+i]
+	SetFooter(buf.GetFilepath())
+
+	width, height := GetBufferSceenSize()
+	for i := 0; i < height && lineOff+i < len(buf.Lines); i++ {
+		line := buf.Lines[lineOff+i]
 		for j := 0; j < width && j+charOff < len(line); j++ {
-			SetCharacter(j, i, line[charOff+j])
+			screen.SetContent(j, i, line[j], nil, tcell.StyleDefault)
 		}
 	}
 
@@ -46,10 +50,22 @@ func Reset() {
 	screen.Clear()
 }
 
-func SetCharacter(x, y int, char rune) { screen.SetContent(x, y, char, nil, tcell.StyleDefault) }
+func SetFooter(filepath string) {
+	chars := []rune(filepath)
+	w, h := screen.Size()
 
-func GetSceenSize() (width, height int) {
-	return screen.Size()
+	for j := range w {
+		if j < len(chars) {
+			screen.SetContent(j, h-1, chars[j], nil, theme.GetFooterStyle())
+		} else {
+			screen.SetContent(j, h-1, 0, nil, theme.GetFooterStyle())
+		}
+	}
+}
+
+func GetBufferSceenSize() (width, height int) {
+	w, h := screen.Size()
+	return w, h - 1
 }
 
 func SetCursor(x, y int) {
@@ -58,5 +74,9 @@ func SetCursor(x, y int) {
 }
 
 func setTheme() {
-	screen.SetCursorStyle(tcell.CursorStyleSteadyBlock)
+	theme = InitTheme()
+
+	screen.SetCursorStyle(tcell.CursorStyleSteadyBlock, theme.contentStyle.GetForeground())
+	screen.SetStyle(theme.contentStyle)
+
 }

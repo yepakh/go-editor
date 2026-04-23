@@ -9,7 +9,7 @@ import (
 )
 
 type Buffer struct {
-	filePath          string
+	filepath          string
 	hasUnsavedChanges bool
 	Lines             [][]rune
 }
@@ -23,6 +23,10 @@ func Load(filePath string) (*Buffer, error) {
 	buff.load()
 
 	return &buff, nil
+}
+
+func (buff *Buffer) GetFilepath() string {
+	return buff.filepath
 }
 
 func (buff *Buffer) GetMaxLines() int {
@@ -45,7 +49,7 @@ func (buff *Buffer) Close(force bool, create bool) error {
 func (buff *Buffer) load() {
 	buff.Lines = append(buff.Lines, make([]rune, 0))
 
-	data, err := os.ReadFile(buff.filePath)
+	data, err := os.ReadFile(buff.filepath)
 	if err != nil {
 		return
 	}

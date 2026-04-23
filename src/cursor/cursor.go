@@ -30,7 +30,7 @@ func (cursor *Cursor) SetCursorTo(targetX, targetY int, charChanged bool, buf *b
 		return
 	}
 
-	scrW, scrH := render.GetSceenSize()
+	scrW, scrH := render.GetBufferSceenSize()
 	requiresReRender := false
 
 	scrMinY, scrMaxY := cursor.lineOffset, cursor.lineOffset+scrH-1

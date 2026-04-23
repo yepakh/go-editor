@@ -49,9 +49,10 @@ func (ed *Editor) InitFromDir(dir string) error {
 
 func (ed *Editor) InitFromFile(filePath string) error {
 	dir := filepath.Dir(filePath)
+	absPath, _ := filepath.Abs(filePath)
 
 	ed.initDirectory = dir
-	return ed.loadBuffer(filePath)
+	return ed.loadBuffer(absPath)
 }
 
 func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *buffer.Buffer, quitCh chan struct{}) {
