@@ -64,7 +64,7 @@ func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *buffer.Buffer,
 				// Handle character
 			} else if cursor.HandleCursorEvent(ev.Key(), buf) {
 				continue
-			} else if ev.Key() == tcell.KeyCtrlC {
+			} else if ev.Key() == tcell.KeyCtrlQ {
 				if ed.handleCloseEvent() {
 					close(quitCh)
 				}
