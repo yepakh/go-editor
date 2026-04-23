@@ -1,8 +1,8 @@
 # go-editor
 
-A terminal text editor build from scrant using GO.
+A terminal text editor build from scratch using GO.
 
-The idea behind is to learn GO and also to try solving some problems that I did not encounter.
+The idea behind is to learn GO and have some fun. So clanker assist is to minimal, no generated code, mostly just Q/A with Claude.
 
 ## Stack
 
