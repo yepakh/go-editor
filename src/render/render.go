@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/gdamore/tcell/v3"
-	"github.com/yepakh/go-editor/src/buffer"
 )
 
 var screen tcell.Screen
@@ -29,13 +28,12 @@ func InitScreen() <-chan tcell.Event {
 	return screen.EventQ()
 }
 
-func RenderBuffer(buf *buffer.Buffer, lineOff, charOff int) {
+func RenderBuffer(lines *[][]rune, lineOff, charOff int) {
 	screen.Clear()
-	SetFooter(buf.GetFilepath())
 
 	width, height := GetBufferSceenSize()
-	for i := 0; i < height && lineOff+i < len(buf.Lines); i++ {
-		line := buf.Lines[lineOff+i]
+	for i := 0; i < height && lineOff+i < len(*lines); i++ {
+		line := (*lines)[lineOff+i]
 		SetLineNumber(lineOff+i, i)
 		for j := 0; j < width && j+charOff < len(line); j++ {
 			screen.SetContent(j+rightSidePadding, i, line[j], nil, tcell.StyleDefault)
@@ -71,7 +69,7 @@ func SetLineNumber(lineNum, linePos int) {
 	}
 }
 
-func SetFooter(filepath string) {
+func RenderFooter(filepath string) {
 	chars := []rune(filepath)
 	w, h := screen.Size()
 
@@ -82,6 +80,8 @@ func SetFooter(filepath string) {
 			screen.SetContent(j, h-1, 0, nil, theme.GetFooterStyle())
 		}
 	}
+
+	screen.Show()
 }
 
 func GetBufferSceenSize() (width, height int) {

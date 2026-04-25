@@ -5,6 +5,8 @@ import (
 	"os"
 	"unicode/utf8"
 
+	"github.com/yepakh/go-editor/src/cursor"
+	"github.com/yepakh/go-editor/src/render"
 	"github.com/yepakh/go-editor/src/utils"
 )
 
@@ -12,17 +14,33 @@ type Buffer struct {
 	filepath          string
 	hasUnsavedChanges bool
 	Lines             [][]rune
+	Cursor            *cursor.Cursor
 }
 
-func Load(filePath string) (*Buffer, error) {
+func Init(filePath string) (*Buffer, error) {
 	if err := utils.IsValidPathOrEmpty(filePath); err != nil && !errors.Is(err, utils.ErrEmptyPath) {
 		return nil, err
 	}
 
-	buff := Buffer{filePath, false, make([][]rune, 0)}
+	buff := Buffer{filePath, false, make([][]rune, 0), nil}
 	buff.load()
 
+	renderChan := make(chan struct{})
+	buff.Cursor = cursor.InitCursor(&buff.Lines, renderChan)
+
+	go func() {
+		for range renderChan {
+			buff.Render()
+		}
+	}()
+
 	return &buff, nil
+}
+
+func (buff *Buffer) Render() {
+	lineOff, charOff := buff.Cursor.GetOffsets()
+	render.RenderBuffer(&buff.Lines, lineOff, charOff)
+	render.RenderFooter(buff.filepath)
 }
 
 func (buff *Buffer) GetFilepath() string {

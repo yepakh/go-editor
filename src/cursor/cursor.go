@@ -2,42 +2,67 @@ package cursor
 
 import (
 	"github.com/gdamore/tcell/v3"
-	"github.com/yepakh/go-editor/src/buffer"
 	"github.com/yepakh/go-editor/src/render"
 )
 
 type Cursor struct {
-	charPos      int
-	line         int
-	lineOffset   int
-	charOffset   int
-	savedCharPos int
+	charPos          int
+	line             int
+	lineOffset       int
+	charOffset       int
+	savedCharPos     int
+	lines            *[][]rune
+	renderBufChannel chan<- struct{}
 }
 
-var ActiveCursor = Cursor{0, 0, 0, 0, 0}
+func InitCursor(lines *[][]rune, renderBufChannel chan<- struct{}) *Cursor {
+	return &Cursor{0, 0, 0, 0, 0, lines, renderBufChannel}
+}
+
+var eventHandlers = map[tcell.Key]func(*Cursor){
+	tcell.KeyUp:    func(cursor *Cursor) { cursor.MoveCursor(0, -1) },
+	tcell.KeyDown:  func(cursor *Cursor) { cursor.MoveCursor(0, 1) },
+	tcell.KeyLeft:  func(cursor *Cursor) { cursor.MoveCursor(-1, 0) },
+	tcell.KeyRight: func(cursor *Cursor) { cursor.MoveCursor(1, 0) },
+}
+
+func (cursor *Cursor) HandleCursorEvent(key tcell.Key) bool {
+	handler, ok := eventHandlers[key]
+
+	if !ok {
+		return false
+	}
+
+	handler(cursor)
+	return true
+}
 
 func (cursor *Cursor) GetAbsoluteCursorCoords() (charPos, line int) {
 	return cursor.charPos, cursor.line
 }
 
-func (cursor *Cursor) MoveCursor(x int, y int, buf *buffer.Buffer) {
+func (cursor *Cursor) MoveCursor(x int, y int) {
 	currX, currY := cursor.GetAbsoluteCursorCoords()
-	cursor.SetCursorTo(currX+x, currY+y, buf)
+	cursor.SetCursorTo(currX+x, currY+y)
 }
 
-func (cursor *Cursor) SetCursorTo(targetX, targetY int, buf *buffer.Buffer) {
-	if !cursor.setPosition(targetX, targetY, buf) {
+func (cursor *Cursor) SetCursorTo(targetX, targetY int) {
+	if !cursor.setPosition(targetX, targetY) {
 		return
 	}
 
-	cursor.renderCursor(buf, false)
+	cursor.renderCursor(false)
 }
 
-func (cursor *Cursor) RefreshCursor(buf *buffer.Buffer) {
-	cursor.renderCursor(buf, true)
+func (cursor *Cursor) RefreshCursor() {
+	cursor.renderCursor(true)
 }
 
-func (cursor *Cursor) renderCursor(buf *buffer.Buffer, renderBuf bool) {
+func (cursor *Cursor) GetOffsets() (lineOff, charOff int) {
+	return cursor.lineOffset, cursor.charOffset
+}
+
+func (cursor *Cursor) renderCursor(renderBuf bool) {
 	scrW, scrH := render.GetBufferSceenSize()
 
 	scrMinY, scrMaxY := cursor.lineOffset, cursor.lineOffset+scrH-1
@@ -62,37 +87,38 @@ func (cursor *Cursor) renderCursor(buf *buffer.Buffer, renderBuf bool) {
 	render.SetCursor(scrX, scrY)
 
 	if renderBuf {
-		render.RenderBuffer(buf, cursor.lineOffset, cursor.charOffset)
+		cursor.renderBufChannel <- struct{}{}
 	}
 }
 
-func (cursor *Cursor) setPosition(targetX, targetY int, buf *buffer.Buffer) bool {
-	if len(buf.Lines) == 0 {
+func (cursor *Cursor) setPosition(targetX, targetY int) bool {
+	if len(*cursor.lines) == 0 {
 		cursor.charPos = 0
 		cursor.line = 0
 		return true
 	}
 
-	if targetY >= len(buf.Lines) {
-		targetY = len(buf.Lines) - 1
+	absX, absY := cursor.GetAbsoluteCursorCoords()
+
+	charChanged := targetX != absX
+	if !charChanged {
+		targetX = cursor.savedCharPos
+	}
+
+	if targetY >= len(*cursor.lines) {
+		targetY = len(*cursor.lines) - 1
 	} else if targetY < 0 {
 		targetY = 0
 	}
 
-	if targetX >= len(buf.Lines[targetY]) && len(buf.Lines[targetY]) > 0 {
-		targetX = len(buf.Lines[targetY]) - 1
-	} else if targetX < 0 || len(buf.Lines[targetY]) == 0 {
+	if targetX >= len((*cursor.lines)[targetY]) && len((*cursor.lines)[targetY]) > 0 {
+		targetX = len((*cursor.lines)[targetY]) - 1
+	} else if targetX < 0 || len((*cursor.lines)[targetY]) == 0 {
 		targetX = 0
 	}
 
-	absX, absY := cursor.GetAbsoluteCursorCoords()
 	if targetX == absX && targetY == absY {
 		return false
-	}
-
-	charChanged := targetX == absX
-	if !charChanged {
-		targetX = cursor.savedCharPos
 	}
 
 	cursor.charPos = targetX
@@ -105,26 +131,4 @@ func (cursor *Cursor) setPosition(targetX, targetY int, buf *buffer.Buffer) bool
 
 func (cursor *Cursor) getRelativeCursorCoords() (x, y int) {
 	return cursor.charPos - cursor.charOffset, cursor.line - cursor.lineOffset
-}
-
-var eventHandlers = map[tcell.Key]func(*buffer.Buffer){
-	tcell.KeyUp:    func(buf *buffer.Buffer) { ActiveCursor.MoveCursor(0, -1, buf) },
-	tcell.KeyDown:  func(buf *buffer.Buffer) { ActiveCursor.MoveCursor(0, 1, buf) },
-	tcell.KeyLeft:  func(buf *buffer.Buffer) { ActiveCursor.MoveCursor(-1, 0, buf) },
-	tcell.KeyRight: func(buf *buffer.Buffer) { ActiveCursor.MoveCursor(1, 0, buf) },
-}
-
-func HandleCursorEvent(key tcell.Key, buf *buffer.Buffer) bool {
-	handler, ok := eventHandlers[key]
-
-	if !ok {
-		return false
-	}
-
-	handler(buf)
-	return true
-}
-
-func InitCursor(buf *buffer.Buffer) {
-	ActiveCursor.MoveCursor(0, 0, buf)
 }

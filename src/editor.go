@@ -7,7 +7,6 @@ import (
 
 	"github.com/gdamore/tcell/v3"
 	buffer "github.com/yepakh/go-editor/src/buffer"
-	"github.com/yepakh/go-editor/src/cursor"
 	"github.com/yepakh/go-editor/src/render"
 )
 
@@ -30,8 +29,7 @@ func (ed *Editor) Start() chan struct{} {
 	eventChan := render.InitScreen()
 
 	ed.displayedBuffer = ed.loadedBuffers[0]
-	render.RenderBuffer(ed.displayedBuffer, 0, 0)
-	cursor.InitCursor(ed.displayedBuffer)
+	ed.displayedBuffer.Render()
 
 	quit := make(chan struct{})
 	go ed.handleUserInput(eventChan, ed.displayedBuffer, quit)
@@ -63,7 +61,7 @@ func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *buffer.Buffer,
 		case *tcell.EventKey:
 			if ev.Key() == tcell.KeyRune {
 				// Handle character
-			} else if cursor.HandleCursorEvent(ev.Key(), buf) {
+			} else if buf.Cursor.HandleCursorEvent(ev.Key()) {
 				continue
 			} else if ev.Key() == tcell.KeyCtrlQ {
 				if ed.handleCloseEvent() {
@@ -78,7 +76,7 @@ func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *buffer.Buffer,
 
 func (ed *Editor) handleResizeEvent() {
 	render.Sync()
-	cursor.ActiveCursor.RefreshCursor(ed.displayedBuffer)
+	ed.displayedBuffer.Cursor.RefreshCursor()
 }
 
 func (ed *Editor) handleCloseEvent() bool {
@@ -94,7 +92,7 @@ func (ed *Editor) handleCloseEvent() bool {
 }
 
 func (ed *Editor) loadBuffer(filePath string) error {
-	newBuff, err := buffer.Load(filePath)
+	newBuff, err := buffer.Init(filePath)
 	if err != nil {
 		return err
 	}
