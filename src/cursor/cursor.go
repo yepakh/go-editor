@@ -22,44 +22,51 @@ func (cursor *Cursor) GetAbsoluteCursorCoords() (charPos, line int) {
 
 func (cursor *Cursor) MoveCursor(x int, y int, buf *buffer.Buffer) {
 	currX, currY := cursor.GetAbsoluteCursorCoords()
-	cursor.SetCursorTo(currX+x, currY+y, x != 0, buf)
+	cursor.SetCursorTo(currX+x, currY+y, buf)
 }
 
-func (cursor *Cursor) SetCursorTo(targetX, targetY int, charChanged bool, buf *buffer.Buffer) {
-	if !cursor.setPosition(targetX, targetY, charChanged, buf) {
+func (cursor *Cursor) SetCursorTo(targetX, targetY int, buf *buffer.Buffer) {
+	if !cursor.setPosition(targetX, targetY, buf) {
 		return
 	}
 
+	cursor.renderCursor(buf, false)
+}
+
+func (cursor *Cursor) RefreshCursor(buf *buffer.Buffer) {
+	cursor.renderCursor(buf, true)
+}
+
+func (cursor *Cursor) renderCursor(buf *buffer.Buffer, renderBuf bool) {
 	scrW, scrH := render.GetBufferSceenSize()
-	requiresReRender := false
 
 	scrMinY, scrMaxY := cursor.lineOffset, cursor.lineOffset+scrH-1
 	if cursor.line < scrMinY {
 		cursor.lineOffset = cursor.line
-		requiresReRender = true
+		renderBuf = true
 	} else if cursor.line > scrMaxY {
 		cursor.lineOffset += cursor.line - scrMaxY
-		requiresReRender = true
+		renderBuf = true
 	}
 
 	scrMinX, scrMaxX := cursor.charOffset, cursor.charOffset+scrW-1
 	if cursor.charPos < scrMinX {
 		cursor.charOffset = cursor.charPos
-		requiresReRender = true
+		renderBuf = true
 	} else if cursor.charPos > scrMaxX {
 		cursor.charOffset += cursor.charPos - scrMaxX
-		requiresReRender = true
+		renderBuf = true
 	}
 
 	scrX, scrY := cursor.getRelativeCursorCoords()
 	render.SetCursor(scrX, scrY)
 
-	if requiresReRender {
+	if renderBuf {
 		render.RenderBuffer(buf, cursor.lineOffset, cursor.charOffset)
 	}
 }
 
-func (cursor *Cursor) setPosition(targetX, targetY int, charChanged bool, buf *buffer.Buffer) bool {
+func (cursor *Cursor) setPosition(targetX, targetY int, buf *buffer.Buffer) bool {
 	if len(buf.Lines) == 0 {
 		cursor.charPos = 0
 		cursor.line = 0
@@ -72,18 +79,20 @@ func (cursor *Cursor) setPosition(targetX, targetY int, charChanged bool, buf *b
 		targetY = 0
 	}
 
-	if !charChanged {
-		targetX = cursor.savedCharPos
-	}
-
 	if targetX >= len(buf.Lines[targetY]) && len(buf.Lines[targetY]) > 0 {
 		targetX = len(buf.Lines[targetY]) - 1
 	} else if targetX < 0 || len(buf.Lines[targetY]) == 0 {
 		targetX = 0
 	}
 
-	if absX, absY := cursor.GetAbsoluteCursorCoords(); targetX == absX && targetY == absY {
+	absX, absY := cursor.GetAbsoluteCursorCoords()
+	if targetX == absX && targetY == absY {
 		return false
+	}
+
+	charChanged := targetX == absX
+	if !charChanged {
+		targetX = cursor.savedCharPos
 	}
 
 	cursor.charPos = targetX

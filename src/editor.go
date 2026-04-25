@@ -71,9 +71,14 @@ func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *buffer.Buffer,
 				}
 			}
 		case *tcell.EventResize:
-			render.Sync()
+			ed.handleResizeEvent()
 		}
 	}
+}
+
+func (ed *Editor) handleResizeEvent() {
+	render.Sync()
+	cursor.ActiveCursor.RefreshCursor(ed.displayedBuffer)
 }
 
 func (ed *Editor) handleCloseEvent() bool {
