@@ -6,27 +6,55 @@ import (
 	"path/filepath"
 
 	"github.com/gdamore/tcell/v3"
-	buffer "github.com/yepakh/go-editor/src/buffer"
-	"github.com/yepakh/go-editor/src/render"
 )
 
 type Editor struct {
+	screen          *tcell.Screen
 	initDirectory   string
-	loadedBuffers   []*buffer.Buffer
-	displayedBuffer *buffer.Buffer
+	loadedBuffers   []*Buffer
+	displayedBuffer *Buffer
 }
 
-func (ed *Editor) Init() error {
+func Init(screen *tcell.Screen) (*Editor, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("Failed to get current directory: %v", err)
+		return nil, fmt.Errorf("Failed to get current directory: %v", err)
 	}
 
-	return ed.InitFromDir(cwd)
+	return InitFromDir(screen, cwd)
+}
+
+func InitFromDir(screen *tcell.Screen, dir string) (*Editor, error) {
+	ed := Editor{}
+	ed.screen = screen
+	ed.initDirectory = dir
+
+	err := ed.loadBuffer("")
+	if err != nil {
+		return nil, err
+	}
+
+	return &ed, nil
+}
+
+func InitFromFile(screen *tcell.Screen, filePath string) (*Editor, error) {
+	dir := filepath.Dir(filePath)
+	absPath, _ := filepath.Abs(filePath)
+
+	ed := Editor{}
+	ed.screen = screen
+	ed.initDirectory = dir
+
+	err := ed.loadBuffer(absPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ed, nil
 }
 
 func (ed *Editor) Start() chan struct{} {
-	eventChan := render.InitScreen()
+	eventChan := InitRenderScreen(*ed.screen)
 
 	ed.displayedBuffer = ed.loadedBuffers[0]
 	ed.displayedBuffer.Render()
@@ -37,23 +65,10 @@ func (ed *Editor) Start() chan struct{} {
 }
 
 func (ed *Editor) Close() {
-	render.CloseScreen()
+	CloseRenderScreen()
 }
 
-func (ed *Editor) InitFromDir(dir string) error {
-	ed.initDirectory = dir
-	return ed.loadBuffer("")
-}
-
-func (ed *Editor) InitFromFile(filePath string) error {
-	dir := filepath.Dir(filePath)
-	absPath, _ := filepath.Abs(filePath)
-
-	ed.initDirectory = dir
-	return ed.loadBuffer(absPath)
-}
-
-func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *buffer.Buffer, quitCh chan struct{}) {
+func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *Buffer, quitCh chan struct{}) {
 	for {
 		event := <-evChan
 
@@ -75,7 +90,7 @@ func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *buffer.Buffer,
 }
 
 func (ed *Editor) handleResizeEvent() {
-	render.Sync()
+	RenderSync()
 	ed.displayedBuffer.Cursor.RefreshCursor()
 }
 
@@ -92,7 +107,7 @@ func (ed *Editor) handleCloseEvent() bool {
 }
 
 func (ed *Editor) loadBuffer(filePath string) error {
-	newBuff, err := buffer.Init(filePath)
+	newBuff, err := InitBuffer(filePath)
 	if err != nil {
 		return err
 	}

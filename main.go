@@ -1,27 +1,34 @@
 package main
 
 import (
+	"log"
 	"os"
 
-	editor "github.com/yepakh/go-editor/src"
+	"github.com/gdamore/tcell/v3"
+	"github.com/yepakh/go-editor/editor"
 )
 
 func main() {
-	path := getPath()
-	editor := editor.Editor{}
-
-	if path == "" {
-		editor.Init()
-	} else if info, err := os.Stat(path); err == nil && info.IsDir() {
-		editor.InitFromDir(path)
-	} else {
-		editor.InitFromFile(path)
+	screen, err := tcell.NewScreen()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	quitCh := editor.Start()
+	var ed *editor.Editor
+	path := getPath()
+
+	if path == "" {
+		ed, err = editor.Init(&screen)
+	} else if info, err := os.Stat(path); err == nil && info.IsDir() {
+		ed, err = editor.InitFromDir(&screen, path)
+	} else {
+		ed, err = editor.InitFromFile(&screen, path)
+	}
+
+	quitCh := ed.Start()
 
 	<-quitCh
-	editor.Close()
+	ed.Close()
 }
 
 func getPath() string {

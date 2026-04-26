@@ -1,24 +1,22 @@
-package buffer
+package editor
 
 import (
 	"errors"
 	"os"
 	"unicode/utf8"
-
-	"github.com/yepakh/go-editor/src/cursor"
-	"github.com/yepakh/go-editor/src/render"
-	"github.com/yepakh/go-editor/src/utils"
 )
+
+var ChangesNotSaved = errors.New("cannot close file, changes not saved")
 
 type Buffer struct {
 	filepath          string
 	hasUnsavedChanges bool
 	Lines             [][]rune
-	Cursor            *cursor.Cursor
+	Cursor            *Cursor
 }
 
-func Init(filePath string) (*Buffer, error) {
-	if err := utils.IsValidPathOrEmpty(filePath); err != nil && !errors.Is(err, utils.ErrEmptyPath) {
+func InitBuffer(filePath string) (*Buffer, error) {
+	if err := IsValidPathOrEmpty(filePath); err != nil && !errors.Is(err, ErrEmptyPath) {
 		return nil, err
 	}
 
@@ -26,7 +24,7 @@ func Init(filePath string) (*Buffer, error) {
 	buff.load()
 
 	renderChan := make(chan struct{})
-	buff.Cursor = cursor.InitCursor(&buff.Lines, renderChan)
+	buff.Cursor = InitCursor(&buff.Lines, renderChan)
 
 	go func() {
 		for range renderChan {
@@ -39,8 +37,8 @@ func Init(filePath string) (*Buffer, error) {
 
 func (buff *Buffer) Render() {
 	lineOff, charOff := buff.Cursor.GetOffsets()
-	render.RenderBuffer(&buff.Lines, lineOff, charOff)
-	render.RenderFooter(buff.filepath)
+	RenderBuffer(&buff.Lines, lineOff, charOff)
+	RenderFooter(buff.filepath)
 }
 
 func (buff *Buffer) GetFilepath() string {

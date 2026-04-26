@@ -1,4 +1,4 @@
-package render
+package editor
 
 import (
 	"github.com/gdamore/tcell/v3"
@@ -27,12 +27,4 @@ func tokyoNightTheme() Theme {
 	rPanStyle = rPanStyle.Foreground(tcell.NewRGBColor(68, 75, 107))
 	rPanStyle = rPanStyle.Background(tcell.NewRGBColor(26, 27, 38))
 	return Theme{contStyle, footStyle, rPanStyle}
-}
-
-func (t *Theme) GetTextStyle() tcell.Style {
-	return t.contentStyle
-}
-
-func (t *Theme) GetFooterStyle() tcell.Style {
-	return t.footerStyle
 }

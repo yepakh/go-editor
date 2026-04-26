@@ -1,4 +1,4 @@
-package render
+package editor
 
 import (
 	"fmt"
@@ -11,19 +11,14 @@ var screen tcell.Screen
 var theme Theme
 var rightSidePadding int = 6
 
-func InitScreen() <-chan tcell.Event {
-	var err error
-	screen, err = tcell.NewScreen()
-
-	if err != nil {
-		log.Fatal(err)
-	}
+func InitRenderScreen(sc tcell.Screen) <-chan tcell.Event {
+	screen = sc
 	if err := screen.Init(); err != nil {
 		log.Fatal(err)
 	}
 
 	setTheme()
-	SetCursor(0, 0)
+	SetRenderCursor(0, 0)
 
 	return screen.EventQ()
 }
@@ -31,10 +26,10 @@ func InitScreen() <-chan tcell.Event {
 func RenderBuffer(lines *[][]rune, lineOff, charOff int) {
 	screen.Clear()
 
-	width, height := GetBufferSceenSize()
+	width, height := GetContentSceenSize()
 	for i := 0; i < height && lineOff+i < len(*lines); i++ {
 		line := (*lines)[lineOff+i]
-		SetLineNumber(lineOff+i, i)
+		RenderLineNumber(lineOff+i, i)
 		for j := 0; j < width && j+charOff < len(line); j++ {
 			screen.SetContent(j+rightSidePadding, i, line[j], nil, tcell.StyleDefault)
 		}
@@ -43,15 +38,15 @@ func RenderBuffer(lines *[][]rune, lineOff, charOff int) {
 	screen.Show()
 }
 
-func Sync() { screen.Sync() }
+func RenderSync() { screen.Sync() }
 
-func CloseScreen() { screen.Fini() }
+func CloseRenderScreen() { screen.Fini() }
 
 func Reset() {
 	screen.Clear()
 }
 
-func SetLineNumber(lineNum, linePos int) {
+func RenderLineNumber(lineNum, linePos int) {
 	padding := rightSidePadding
 	lineStr := fmt.Sprint(lineNum + 1)
 	lineNumLen := len(lineStr)
@@ -75,21 +70,21 @@ func RenderFooter(filepath string) {
 
 	for j := range w {
 		if j < len(chars) {
-			screen.SetContent(j, h-1, chars[j], nil, theme.GetFooterStyle())
+			screen.SetContent(j, h-1, chars[j], nil, theme.footerStyle)
 		} else {
-			screen.SetContent(j, h-1, 0, nil, theme.GetFooterStyle())
+			screen.SetContent(j, h-1, 0, nil, theme.footerStyle)
 		}
 	}
 
 	screen.Show()
 }
 
-func GetBufferSceenSize() (width, height int) {
+func GetContentSceenSize() (width, height int) {
 	w, h := screen.Size()
 	return w - rightSidePadding, h - 1
 }
 
-func SetCursor(x, y int) {
+func SetRenderCursor(x, y int) {
 	screen.ShowCursor(x+rightSidePadding, y)
 	screen.Show()
 }

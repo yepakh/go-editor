@@ -1,8 +1,7 @@
-package cursor
+package editor
 
 import (
 	"github.com/gdamore/tcell/v3"
-	"github.com/yepakh/go-editor/src/render"
 )
 
 type Cursor struct {
@@ -63,7 +62,7 @@ func (cursor *Cursor) GetOffsets() (lineOff, charOff int) {
 }
 
 func (cursor *Cursor) renderCursor(renderBuf bool) {
-	scrW, scrH := render.GetBufferSceenSize()
+	scrW, scrH := GetContentSceenSize()
 
 	scrMinY, scrMaxY := cursor.lineOffset, cursor.lineOffset+scrH-1
 	if cursor.line < scrMinY {
@@ -84,7 +83,7 @@ func (cursor *Cursor) renderCursor(renderBuf bool) {
 	}
 
 	scrX, scrY := cursor.getRelativeCursorCoords()
-	render.SetCursor(scrX, scrY)
+	SetRenderCursor(scrX, scrY)
 
 	if renderBuf {
 		cursor.renderBufChannel <- struct{}{}
