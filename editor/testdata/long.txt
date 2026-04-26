@@ -1,0 +1,83 @@
+The quick brown fox jumps over the lazy dog near the riverbank.
+Hello, world!
+This is a simple test file for the editor.
+
+Go is an open source programming language that makes it easy to build software.
+Short line.
+
+The terminal editor reads this file line by line, rendering each character to the screen.
+Why did the programmer quit? Because he didn't get arrays.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.
+A.
+
+Navigating through a file requires careful cursor management and boundary checking.
+The cursor should not move beyond the last character on a line.
+Empty lines below this one should still be navigatable.
+
+x
+
+The gap buffer is a classic data structure used in text editors like Emacs.
+It allows efficient insertion and deletion at the cursor position.
+Moving the cursor requires shifting the gap, which is an O(n) operation.
+
+Some editors use a piece table instead, which never modifies the original buffer.
+VS Code uses a piece table internally.
+
+Кирилиця теж повинна працювати коректно в редакторі.
+Це важливо для підтримки різних мов та кодувань.
+
+Unicode support means handling multi-byte characters correctly.
+Each rune in Go can be up to 4 bytes when encoded in UTF-8.
+Ranging over a string in Go yields runes, not bytes.
+
+The render loop should clear the screen, draw all lines, then flush.
+tcell handles the diffing between frames automatically.
+
+A very long line to test horizontal rendering and see how the editor handles content that extends well beyond the typical terminal width of eighty characters or so, which is common in many terminal emulators and should be handled gracefully.
+
+Tab	characters	might	appear	in	some	files.
+Make sure they render properly or are converted to spaces.
+
+The lazy cat sat on the mat and looked at the hat.
+Pack my box with five dozen liquor jugs.
+How vexingly quick daft zebras jump!
+
+Line 42.
+
+1234567890
+abcdefghijklmnopqrstuvwxyz
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+!@#$%^&*()_+-=[]{}|;:,.<>?
+
+Special characters: ~ ` ' " \ /
+
+An editor must handle the end of file gracefully.
+The last line may or may not have a trailing newline.
+Cursor movement at the bottom of the file should be clamped.
+
+Testing scrolling behavior requires more lines than the terminal height.
+Most terminals are 24 lines tall by default.
+Alacritty can be configured to any height you want.
+
+The status bar should show the current filename and cursor position.
+Keybind hints help new users understand how to use the editor.
+
+Another empty line coming up.
+
+Back to text again after the empty line.
+The cursor should jump correctly over empty lines.
+
+One more long line here to make sure the renderer does not crash or wrap unexpectedly when the content is wider than the screen and scrolling has not yet been implemented in the editor codebase.
+
+Short.
+Shorter.
+S.
+
+Almost at the end of the file now.
+This is line ninety-something.
+Just a few more lines to go.
+
+The end is near.
+One more line.
+Last line.

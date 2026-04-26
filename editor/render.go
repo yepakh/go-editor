@@ -31,7 +31,7 @@ func RenderBuffer(lines *[][]rune, lineOff, charOff int) {
 		line := (*lines)[lineOff+i]
 		RenderLineNumber(lineOff+i, i)
 		for j := 0; j < width && j+charOff < len(line); j++ {
-			screen.SetContent(j+rightSidePadding, i, line[j], nil, tcell.StyleDefault)
+			screen.SetContent(j+rightSidePadding, i, line[j], nil, theme.contentStyle)
 		}
 	}
 
@@ -54,7 +54,7 @@ func RenderLineNumber(lineNum, linePos int) {
 	screen.SetContent(padding-1, linePos, 0, nil, theme.rightPanelStyle)
 	padding--
 
-	for i := range padding - 1 {
+	for i := range padding {
 		if i < lineNumLen {
 			r := rune(lineStr[lineNumLen-i-1])
 			screen.SetContent(padding-i-1, linePos, r, nil, theme.rightPanelStyle)
@@ -94,5 +94,4 @@ func setTheme() {
 
 	screen.SetCursorStyle(tcell.CursorStyleSteadyBlock, theme.contentStyle.GetForeground())
 	screen.SetStyle(theme.contentStyle)
-
 }
