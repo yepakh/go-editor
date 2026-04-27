@@ -2,6 +2,7 @@ package editor
 
 import (
 	"log"
+	"time"
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
@@ -12,6 +13,7 @@ const simpleFile = "testdata/simple.txt"
 const longFile = "testdata/long.txt"
 const emptyFile = "testdata/empty.txt"
 const noFile = ""
+const defaultSleep = time.Millisecond * 10
 
 type cellInfo struct {
 	X    vt.Col
@@ -40,7 +42,7 @@ func getCellInfoFromString(s string, x, y int, st *tcell.Style) []cellInfo {
 }
 
 func getTestEditor(filePath string) (*Editor, tcell.Screen, vt.MockTerm) {
-	mockTty := vt.NewMockTerm(vt.MockOptColors(256*256*256), vt.MockOptSize{})
+	mockTty := vt.NewMockTerm(vt.MockOptColors(256 * 256 * 256))
 	mockScreen, err := tcell.NewTerminfoScreenFromTty(mockTty)
 	tcell.ShimScreen(mockScreen)
 
