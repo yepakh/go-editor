@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/gdamore/tcell/v3"
+	piecetable "github.com/yepakh/go-editor/piece-table"
 )
 
 var screen tcell.Screen
@@ -23,12 +24,12 @@ func InitRenderScreen(sc tcell.Screen) <-chan tcell.Event {
 	return screen.EventQ()
 }
 
-func RenderBuffer(lines *[][]rune, lineOff, charOff int) {
+func RenderBuffer(data *piecetable.PieceTable, lineOff, charOff int) {
 	screen.Clear()
 
 	width, height := GetContentSceenSize()
-	for i := 0; i < height && lineOff+i < len(*lines); i++ {
-		line := (*lines)[lineOff+i]
+	lines := data.GetLines(lineOff, height)
+	for i, line := range lines {
 		RenderLineNumber(lineOff+i, i)
 		for j := 0; j < width && j+charOff < len(line); j++ {
 			screen.SetContent(j+rightSidePadding, i, line[j], nil, theme.contentStyle)
