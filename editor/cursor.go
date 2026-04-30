@@ -10,12 +10,12 @@ type Cursor struct {
 	lineOffset       int
 	charOffset       int
 	savedCharPos     int
-	lines            *[][]rune
+	buffer           *Buffer
 	renderBufChannel chan<- struct{}
 }
 
-func InitCursor(lines *[][]rune, renderBufChannel chan<- struct{}) *Cursor {
-	return &Cursor{0, 0, 0, 0, 0, lines, renderBufChannel}
+func InitCursor(buffer *Buffer, renderBufChannel chan<- struct{}) *Cursor {
+	return &Cursor{0, 0, 0, 0, 0, buffer, renderBufChannel}
 }
 
 var eventHandlers = map[tcell.Key]func(*Cursor){
@@ -91,7 +91,7 @@ func (cursor *Cursor) renderCursor(renderBuf bool) {
 }
 
 func (cursor *Cursor) setPosition(targetX, targetY int) bool {
-	if len(*cursor.lines) == 0 {
+	if cursor.buffer.Data.GetLineNum() == 0 {
 		cursor.charPos = 0
 		cursor.line = 0
 		return true
@@ -104,15 +104,17 @@ func (cursor *Cursor) setPosition(targetX, targetY int) bool {
 		targetX = cursor.savedCharPos
 	}
 
-	if targetY >= len(*cursor.lines) {
-		targetY = len(*cursor.lines) - 1
+	lineCount := cursor.buffer.Data.GetLineNum()
+	if targetY >= lineCount {
+		targetY = lineCount - 1
 	} else if targetY < 0 {
 		targetY = 0
 	}
 
-	if targetX >= len((*cursor.lines)[targetY]) && len((*cursor.lines)[targetY]) > 0 {
-		targetX = len((*cursor.lines)[targetY]) - 1
-	} else if targetX < 0 || len((*cursor.lines)[targetY]) == 0 {
+	targetLineLen := cursor.buffer.Data.GetLineLen(targetY)
+	if targetX >= targetLineLen && targetLineLen > 0 {
+		targetX = targetLineLen - 1
+	} else if targetX < 0 || targetLineLen == 0 {
 		targetX = 0
 	}
 

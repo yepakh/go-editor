@@ -1,15 +1,15 @@
 local dap = require("dap")
 
--- dap.configurations.go = {
--- 	{
--- 		type = "go",
--- 		name = "Debug gonotepad (attach)",
--- 		request = "attach",
--- 		mode = "remote",
--- 		host = "127.0.0.1",
--- 		port = 2345,
--- 	},
--- }
+dap.configurations.go = {
+	{
+		type = "go",
+		name = "Debug gonotepad (attach)",
+		request = "attach",
+		mode = "remote",
+		host = "127.0.0.1",
+		port = 2345,
+	},
+}
 
 vim.keymap.set("n", "<leader>Dd", function()
 	-- kill any previous delve session
@@ -26,7 +26,7 @@ vim.keymap.set("n", "<leader>Dd", function()
 		"--accept-multiclient",
 		".",
 		"--",
-		"go.sum",
+		"editor/testdata/simple.txt",
 	}, { detach = true })
 
 	-- wait for delve to start, then attach
