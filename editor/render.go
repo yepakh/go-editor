@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/gdamore/tcell/v3"
-	piecetable "github.com/yepakh/go-editor/piece-table"
+	piecetable "github.com/yepakh/go-editor/piecetable"
 )
 
 var screen tcell.Screen

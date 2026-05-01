@@ -5,6 +5,23 @@ import (
 	"testing"
 )
 
+func TestAddToTheEnd(t *testing.T) {
+	text := "Hello\nWorld"
+	pt := InitPieceTable(text)
+
+	pt.InsertChar(0, 5, ' ')
+	pt.InsertChar(0, 6, 't')
+	pt.InsertChar(0, 7, 'h')
+	pt.InsertChar(0, 8, 'i')
+	pt.InsertChar(0, 9, 's')
+	pt.InsertChar(0, 10, ' ')
+	line := string(pt.GetLines(0, 1)[0])
+	expected := "Hello this "
+	if line != expected {
+		t.Errorf("Expected '%v', got '%v'", expected, line)
+	}
+}
+
 func TestInitPieceTable(t *testing.T) {
 	text := "Hello\nWorld"
 	pt := InitPieceTable(text)

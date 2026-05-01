@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	piecetable "github.com/yepakh/go-editor/piece-table"
+	piecetable "github.com/yepakh/go-editor/piecetable"
 )
 
 var ChangesNotSaved = errors.New("cannot close file, changes not saved")
