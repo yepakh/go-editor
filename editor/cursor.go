@@ -112,8 +112,8 @@ func (cursor *Cursor) setPosition(targetX, targetY int) bool {
 	}
 
 	targetLineLen := cursor.buffer.Data.GetLineLen(targetY)
-	if targetX >= targetLineLen && targetLineLen > 0 {
-		targetX = targetLineLen - 1
+	if targetX > targetLineLen && targetLineLen > 0 {
+		targetX = targetLineLen
 	} else if targetX < 0 || targetLineLen == 0 {
 		targetX = 0
 	}
