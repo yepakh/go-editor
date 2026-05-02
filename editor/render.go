@@ -24,6 +24,16 @@ func InitRenderScreen(sc tcell.Screen) <-chan tcell.Event {
 	return screen.EventQ()
 }
 
+func ReRenderLine(data *piecetable.PieceTable, lineNum, lineOff, charOff int) {
+	width, _ := GetContentSceenSize()
+	line := data.GetLines(lineNum, 1)[0]
+	for j := 0; j < width && j+charOff < len(line); j++ {
+		screen.SetContent(j+rightSidePadding, lineNum-lineOff, line[j+charOff], nil, theme.contentStyle)
+	}
+
+	screen.Show()
+}
+
 func RenderBuffer(data *piecetable.PieceTable, lineOff, charOff int) {
 	screen.Clear()
 
@@ -32,7 +42,7 @@ func RenderBuffer(data *piecetable.PieceTable, lineOff, charOff int) {
 	for i, line := range lines {
 		RenderLineNumber(lineOff+i, i)
 		for j := 0; j < width && j+charOff < len(line); j++ {
-			screen.SetContent(j+rightSidePadding, i, line[j], nil, theme.contentStyle)
+			screen.SetContent(j+rightSidePadding, i, line[j+charOff], nil, theme.contentStyle)
 		}
 	}
 

@@ -75,7 +75,7 @@ func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *Buffer, quitCh
 		switch ev := event.(type) {
 		case *tcell.EventKey:
 			if ev.Key() == tcell.KeyRune {
-				// Handle character
+				ed.displayedBuffer.InsertChar([]rune(ev.Str())[0])
 			} else if buf.Cursor.HandleCursorEvent(ev.Key()) {
 				continue
 			} else if ev.Key() == tcell.KeyCtrlQ {

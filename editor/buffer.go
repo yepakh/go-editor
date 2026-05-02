@@ -36,6 +36,15 @@ func InitBuffer(filePath string) (*Buffer, error) {
 	return &buff, nil
 }
 
+func (buff *Buffer) InsertChar(char rune) {
+	cursCurX, cursCurY := buff.Cursor.GetAbsoluteCursorCoords()
+	buff.Data.InsertChar(cursCurY, cursCurX, char)
+
+	buff.Cursor.MoveCursor(1, 0)
+	lineOff, charOff := buff.Cursor.GetOffsets()
+	ReRenderLine(buff.Data, cursCurY, lineOff, charOff)
+}
+
 func (buff *Buffer) Render() {
 	lineOff, charOff := buff.Cursor.GetOffsets()
 	RenderBuffer(buff.Data, lineOff, charOff)
