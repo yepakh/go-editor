@@ -1,6 +1,47 @@
 package piecetable
 
-import "slices"
+import (
+	"slices"
+)
+
+func (pt *PieceTable) InsertNewLine(lineNum, pos int) {
+	if pos == pt.GetLineLen(lineNum) {
+		newLine := &PieceTableLine{make([]rune, 0), make([]rune, 0), make([]*PieceTableRecord, 0)}
+		newLine.pieces = append(newLine.pieces, &PieceTableRecord{false, 0, 0})
+		pt.lines = slices.Insert(pt.lines, lineNum+1, newLine)
+
+		return
+	}
+
+	line := pt.lines[lineNum]
+	piece, pieceInd, lastPieceCharPos := line.getPieceToUpdate(pos)
+
+	// get all strings after pos for a new line
+	newAddBuf := make([]rune, 0)
+	if piece.isOrig {
+		newAddBuf = append(newAddBuf, line.orig[pos:piece.startInd+piece.len]...)
+	} else {
+		newAddBuf = append(newAddBuf, line.add[pos:piece.startInd+piece.len]...)
+	}
+	piece.len -= lastPieceCharPos - pos
+
+	if pieceInd < len(line.pieces)-1 {
+		for _, p := range line.pieces[pieceInd+1:] {
+			if p.isOrig {
+				newAddBuf = append(newAddBuf, line.orig[p.startInd:p.startInd+p.len]...)
+			} else {
+				newAddBuf = append(newAddBuf, line.add[p.startInd:p.startInd+p.len]...)
+			}
+
+		}
+
+		line.pieces = line.pieces[:pieceInd+1]
+	}
+
+	newLine := PieceTableLine{[]rune{}, []rune(newAddBuf), make([]*PieceTableRecord, 1)}
+	newLine.pieces[0] = &PieceTableRecord{false, 0, len(newAddBuf)}
+	pt.lines = slices.Insert(pt.lines, lineNum+1, &newLine)
+}
 
 func (pt *PieceTable) InsertChar(lineNum, pos int, char rune) {
 	line := pt.lines[lineNum]
@@ -11,13 +52,13 @@ func (pt *PieceTable) InsertChar(lineNum, pos int, char rune) {
 		lastPiece := line.pieces[len(line.pieces)-1]
 		line.add = append(line.add, char)
 
-		if lastPiece.isOrig {
-			newPiece := PieceTableRecord{false, len(line.add) - 1, 1}
-			line.pieces = append(line.pieces, &newPiece)
-		} else {
+		if !lastPiece.isOrig {
 			lastPiece.len++
+			return
 		}
 
+		newPiece := PieceTableRecord{false, len(line.add) - 1, 1}
+		line.pieces = append(line.pieces, &newPiece)
 		return
 	}
 
@@ -25,23 +66,14 @@ func (pt *PieceTable) InsertChar(lineNum, pos int, char rune) {
 	piece, pieceInd, lastPCharPos := line.getPieceToUpdate(pos)
 
 	posInBuffer := piece.startInd + piece.len - (lastPCharPos - pos)
-	// modify found piece
 	piece.len -= (lastPCharPos - pos)
-
-	// add 'add' piece
 	line.add = append(line.add, char)
 
-	// is last piece - append, else - insert
 	addPiece := PieceTableRecord{false, len(line.add) - 1, 1}
-	newOrigPiece := PieceTableRecord{piece.isOrig, posInBuffer, lastPCharPos - pos}
+	line.pieces = slices.Insert(line.pieces, pieceInd+1, &addPiece)
 
-	if pieceInd == len(line.pieces)-1 {
-		line.pieces = append(line.pieces, &addPiece)
-		line.pieces = append(line.pieces, &newOrigPiece)
-	} else {
-		line.pieces = slices.Insert(line.pieces, pieceInd+1, &addPiece)
-		line.pieces = slices.Insert(line.pieces, pieceInd+2, &newOrigPiece)
-	}
+	newOrigPiece := PieceTableRecord{piece.isOrig, posInBuffer, lastPCharPos - pos}
+	line.pieces = slices.Insert(line.pieces, pieceInd+2, &newOrigPiece)
 }
 
 func (ln *PieceTableLine) getPieceToUpdate(pos int) (piece *PieceTableRecord, pieceInd, lastPieceCharPos int) {

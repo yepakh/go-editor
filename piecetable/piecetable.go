@@ -49,13 +49,13 @@ func (pt *PieceTable) GetLineLen(lineNum int) int {
 func (pt *PieceTable) GetLines(stInd, count int) [][]rune {
 	resLn := make([][]rune, 0, count)
 	for i := 0; i < count && i < len(pt.lines); i++ {
-		resLn = append(resLn, pt.getLine(pt.lines[stInd+i]))
+		resLn = append(resLn, pt.lines[stInd+i].getLine())
 	}
 
 	return resLn
 }
 
-func (pt *PieceTable) getLine(line *PieceTableLine) []rune {
+func (line *PieceTableLine) getLine() []rune {
 	outputStr := make([]rune, 0)
 	for _, v := range line.pieces {
 		if v.isOrig {
