@@ -1,8 +1,6 @@
 package editor
 
-import (
-	"github.com/gdamore/tcell/v3"
-)
+import "github.com/yepakh/go-editor/piecetable"
 
 type Cursor struct {
 	charPos          int
@@ -10,30 +8,12 @@ type Cursor struct {
 	lineOffset       int
 	charOffset       int
 	savedCharPos     int
-	buffer           *Buffer
+	data             *piecetable.PieceTable
 	renderBufChannel chan<- struct{}
 }
 
 func InitCursor(buffer *Buffer, renderBufChannel chan<- struct{}) *Cursor {
-	return &Cursor{0, 0, 0, 0, 0, buffer, renderBufChannel}
-}
-
-var eventHandlers = map[tcell.Key]func(*Cursor){
-	tcell.KeyUp:    func(cursor *Cursor) { cursor.MoveCursor(0, -1) },
-	tcell.KeyDown:  func(cursor *Cursor) { cursor.MoveCursor(0, 1) },
-	tcell.KeyLeft:  func(cursor *Cursor) { cursor.MoveCursor(-1, 0) },
-	tcell.KeyRight: func(cursor *Cursor) { cursor.MoveCursor(1, 0) },
-}
-
-func (cursor *Cursor) HandleCursorEvent(key tcell.Key) bool {
-	handler, ok := eventHandlers[key]
-
-	if !ok {
-		return false
-	}
-
-	handler(cursor)
-	return true
+	return &Cursor{0, 0, 0, 0, 0, buffer.Data, renderBufChannel}
 }
 
 func (cursor *Cursor) GetAbsoluteCursorCoords() (charPos, line int) {
@@ -51,10 +31,6 @@ func (cursor *Cursor) SetCursorTo(targetX, targetY int) {
 	}
 
 	cursor.renderCursor(false)
-}
-
-func (cursor *Cursor) RefreshCursor() {
-	cursor.renderCursor(true)
 }
 
 func (cursor *Cursor) GetOffsets() (lineOff, charOff int) {
@@ -91,7 +67,7 @@ func (cursor *Cursor) renderCursor(renderBuf bool) {
 }
 
 func (cursor *Cursor) setPosition(targetX, targetY int) bool {
-	if cursor.buffer.Data.GetLineNum() == 0 {
+	if cursor.data.GetLineNum() == 0 {
 		cursor.charPos = 0
 		cursor.line = 0
 		return true
@@ -104,14 +80,14 @@ func (cursor *Cursor) setPosition(targetX, targetY int) bool {
 		targetX = cursor.savedCharPos
 	}
 
-	lineCount := cursor.buffer.Data.GetLineNum()
+	lineCount := cursor.data.GetLineNum()
 	if targetY >= lineCount {
 		targetY = lineCount - 1
 	} else if targetY < 0 {
 		targetY = 0
 	}
 
-	targetLineLen := cursor.buffer.Data.GetLineLen(targetY)
+	targetLineLen := cursor.data.GetLineLen(targetY)
 	if targetX > targetLineLen && targetLineLen > 0 {
 		targetX = targetLineLen
 	} else if targetX < 0 || targetLineLen == 0 {

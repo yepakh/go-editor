@@ -48,7 +48,7 @@ func (pt *PieceTable) GetLineLen(lineNum int) int {
 
 func (pt *PieceTable) GetLines(stInd, count int) [][]rune {
 	resLn := make([][]rune, 0, count)
-	for i := 0; i < count && i < len(pt.lines); i++ {
+	for i := 0; i < count && stInd+i < len(pt.lines); i++ {
 		resLn = append(resLn, pt.lines[stInd+i].getLine())
 	}
 
