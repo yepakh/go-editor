@@ -57,10 +57,10 @@ func (ed *Editor) Start() chan struct{} {
 	eventChan := InitRenderScreen(*ed.screen)
 
 	ed.displayedBuffer = ed.loadedBuffers[0]
-	ed.displayedBuffer.Render()
+	ed.displayedBuffer.FullRender()
 
 	quit := make(chan struct{})
-	go ed.handleUserInput(eventChan, ed.displayedBuffer, quit)
+	go ed.handleUserInput(eventChan, quit)
 	return quit
 }
 
@@ -68,20 +68,19 @@ func (ed *Editor) Close() {
 	CloseRenderScreen()
 }
 
-func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *Buffer, quitCh chan struct{}) {
+func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, quitCh chan struct{}) {
 	for {
 		event := <-evChan
 
 		switch ev := event.(type) {
 		case *tcell.EventKey:
-			if ev.Key() == tcell.KeyRune {
-				// Handle character
-			} else if buf.Cursor.HandleCursorEvent(ev.Key()) {
-				continue
-			} else if ev.Key() == tcell.KeyCtrlQ {
+			switch ev.Key() {
+			case tcell.KeyCtrlQ:
 				if ed.handleCloseEvent() {
 					close(quitCh)
 				}
+			default:
+				ed.displayedBuffer.HandleBufferEvent(ev)
 			}
 		case *tcell.EventResize:
 			ed.handleResizeEvent()
@@ -91,7 +90,7 @@ func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, buf *Buffer, quitCh
 
 func (ed *Editor) handleResizeEvent() {
 	RenderSync()
-	ed.displayedBuffer.Cursor.RefreshCursor()
+	ed.displayedBuffer.Refresh()
 }
 
 func (ed *Editor) handleCloseEvent() bool {

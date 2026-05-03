@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/gdamore/tcell/v3"
-	piecetable "github.com/yepakh/go-editor/piece-table"
+	piecetable "github.com/yepakh/go-editor/piecetable"
 )
 
 var screen tcell.Screen
@@ -24,20 +24,58 @@ func InitRenderScreen(sc tcell.Screen) <-chan tcell.Event {
 	return screen.EventQ()
 }
 
-func RenderBuffer(data *piecetable.PieceTable, lineOff, charOff int) {
-	screen.Clear()
+func ReRenderLine(data *piecetable.PieceTable, lineNum, lineOff, charOff int) {
+	width, _ := GetContentSceenSize()
+	line := data.GetLines(lineNum, 1)[0]
 
+	for j := range width {
+		var char rune = 0
+		if j+charOff < len(line) {
+			char = line[j+charOff]
+		}
+		screen.SetContent(j+rightSidePadding, lineNum-lineOff, char, nil, theme.contentStyle)
+	}
+
+	screen.Show()
+}
+
+func RenderFromLine(data *piecetable.PieceTable, lineNum, lineOff, charOff int) {
 	width, height := GetContentSceenSize()
-	lines := data.GetLines(lineOff, height)
+	linesToSkip := lineNum - lineOff
+	lines := data.GetLines(lineNum, height-linesToSkip)
+
 	for i, line := range lines {
-		RenderLineNumber(lineOff+i, i)
-		for j := 0; j < width && j+charOff < len(line); j++ {
-			screen.SetContent(j+rightSidePadding, i, line[j], nil, theme.contentStyle)
+		RenderLineNumber(linesToSkip+lineOff+i, i+linesToSkip)
+		for j := range width {
+			var char rune = 0
+			if j+charOff < len(line) {
+				char = line[j+charOff]
+			}
+			screen.SetContent(j+rightSidePadding, i+linesToSkip, char, nil, theme.contentStyle)
 		}
 	}
 
 	screen.Show()
 }
+
+func RenderBuffer(data *piecetable.PieceTable, lineOff, charOff int) {
+	width, height := GetContentSceenSize()
+	lines := data.GetLines(lineOff, height)
+	for i, line := range lines {
+		RenderLineNumber(lineOff+i, i)
+		for j := range width {
+			var char rune = 0
+			if j+charOff < len(line) {
+				char = line[j+charOff]
+			}
+			screen.SetContent(j+rightSidePadding, i, char, nil, theme.contentStyle)
+		}
+	}
+
+	screen.Show()
+}
+
+func ClearScreen() { screen.Clear() }
 
 func RenderSync() { screen.Sync() }
 
