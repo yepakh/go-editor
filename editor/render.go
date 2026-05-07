@@ -24,7 +24,7 @@ func InitRenderScreen(sc tcell.Screen) <-chan tcell.Event {
 	return screen.EventQ()
 }
 
-func ReRenderLine(data *piecetable.PieceTable, lineNum, lineOff, charOff int) {
+func RefreshLine(data *piecetable.PieceTable, lineNum, lineOff, charOff int) {
 	width, _ := GetContentSceenSize()
 	line := data.GetLines(lineNum, 1)[0]
 
@@ -44,7 +44,15 @@ func RenderFromLine(data *piecetable.PieceTable, lineNum, lineOff, charOff int) 
 	linesToSkip := lineNum - lineOff
 	lines := data.GetLines(lineNum, height-linesToSkip)
 
-	for i, line := range lines {
+	for i := range height {
+		if i >= len(lines) {
+			screen.PutStr(0, 0, "")
+			for j := range width + rightSidePadding {
+				screen.SetContent(j, i+linesToSkip, 0, nil, theme.contentStyle)
+			}
+			continue
+		}
+		line := lines[i]
 		RenderLineNumber(linesToSkip+lineOff+i, i+linesToSkip)
 		for j := range width {
 			var char rune = 0
@@ -61,7 +69,15 @@ func RenderFromLine(data *piecetable.PieceTable, lineNum, lineOff, charOff int) 
 func RenderBuffer(data *piecetable.PieceTable, lineOff, charOff int) {
 	width, height := GetContentSceenSize()
 	lines := data.GetLines(lineOff, height)
-	for i, line := range lines {
+	for i := range height {
+		if i >= len(lines) {
+			screen.PutStr(0, 0, "")
+			for j := range width + rightSidePadding {
+				screen.SetContent(j, i, 0, nil, theme.contentStyle)
+			}
+			continue
+		}
+		line := lines[i]
 		RenderLineNumber(lineOff+i, i)
 		for j := range width {
 			var char rune = 0

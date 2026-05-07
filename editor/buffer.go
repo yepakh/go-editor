@@ -36,6 +36,22 @@ func InitBuffer(filePath string) (*Buffer, error) {
 	return &buff, nil
 }
 
+func (buff *Buffer) DeleteChar() {
+	cursCurX, cursCurY := buff.Cursor.GetAbsoluteCursorCoords()
+	isLine := buff.Data.DeleteCharBefore(cursCurY, cursCurX)
+
+	if isLine {
+		buff.Cursor.SetCursorTo(buff.Data.GetLineLen(cursCurY-1), cursCurY-1)
+		lineOff, charOff := buff.Cursor.GetOffsets()
+		RenderFromLine(buff.Data, cursCurY-1, lineOff, charOff)
+		return
+	}
+
+	buff.Cursor.MoveCursor(-1, 0)
+	lineOff, charOff := buff.Cursor.GetOffsets()
+	RefreshLine(buff.Data, cursCurY, lineOff, charOff)
+}
+
 func (buff *Buffer) InserNewLine() {
 	cursCurX, cursCurY := buff.Cursor.GetAbsoluteCursorCoords()
 	buff.Data.InsertNewLine(cursCurY, cursCurX)
@@ -51,7 +67,7 @@ func (buff *Buffer) InsertChar(char rune) {
 
 	buff.Cursor.MoveCursor(1, 0)
 	lineOff, charOff := buff.Cursor.GetOffsets()
-	ReRenderLine(buff.Data, cursCurY, lineOff, charOff)
+	RefreshLine(buff.Data, cursCurY, lineOff, charOff)
 }
 
 func (buff *Buffer) RenderUpdates() {

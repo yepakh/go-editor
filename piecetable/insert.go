@@ -5,7 +5,14 @@ import (
 )
 
 func (pt *PieceTable) InsertNewLine(lineNum, pos int) {
-	if pos == pt.GetLineLen(lineNum) {
+	line := pt.lines[lineNum]
+	lineLen := line.getLength()
+
+	if pos > lineLen {
+		return
+	}
+
+	if pos == lineLen {
 		newLine := &PieceTableLine{make([]rune, 0), make([]rune, 0), make([]*PieceTableRecord, 0)}
 		newLine.pieces = append(newLine.pieces, &PieceTableRecord{false, 0, 0})
 		pt.lines = slices.Insert(pt.lines, lineNum+1, newLine)
@@ -13,7 +20,6 @@ func (pt *PieceTable) InsertNewLine(lineNum, pos int) {
 		return
 	}
 
-	line := pt.lines[lineNum]
 	piece, pieceInd, lastPieceCharPos := line.getPieceToUpdate(pos)
 
 	// get all strings after pos for a new line
@@ -46,9 +52,14 @@ func (pt *PieceTable) InsertNewLine(lineNum, pos int) {
 func (pt *PieceTable) InsertChar(lineNum, pos int, char rune) {
 	line := pt.lines[lineNum]
 
+	lineLen := line.getLength()
+
+	if pos > lineLen {
+		return
+	}
 	// if inserting to the end of line + last buf is add - just append char and increase piece len
 	// if insering to the end of line + last buf is orig - append char and create a new piece
-	if pt.GetLineLen(lineNum) == pos {
+	if lineLen == pos {
 		lastPiece := line.pieces[len(line.pieces)-1]
 		line.add = append(line.add, char)
 
@@ -62,30 +73,56 @@ func (pt *PieceTable) InsertChar(lineNum, pos int, char rune) {
 		return
 	}
 
-	// if insering in the middle of any piece - append char, split the piece, in the middle put a new add piece
-	piece, pieceInd, lastPCharPos := line.getPieceToUpdate(pos)
+	if pos == 0 {
+		line.add = append(line.add, char)
+		piece := PieceTableRecord{false, len(line.add) - 1, 1}
+		line.pieces = slices.Insert(line.pieces, 0, &piece)
+		return
+	}
 
+	piece, pieceInd, lastPCharPos := line.getPieceToUpdate(pos)
+	// if inserting to the end of piece, which happens to be at the end of add buf, append
+	if lastPCharPos == pos && piece.startInd+piece.len == len(line.add) {
+		if !piece.isOrig {
+			line.add = append(line.add, char)
+			piece.len++
+		} else {
+			line.add = append(line.add, char)
+			newPiece := PieceTableRecord{false, len(line.add) - 1, 1}
+			line.pieces = slices.Insert(line.pieces, pieceInd+1, &newPiece)
+			return
+		}
+		return
+	}
+
+	// if insering in the middle of any piece - append char, split the piece, in the middle put a new add piece
 	posInBuffer := piece.startInd + piece.len - (lastPCharPos - pos)
 	piece.len -= (lastPCharPos - pos)
+	if piece.len == 0 {
+		line.pieces = slices.Delete(line.pieces, pieceInd, pieceInd+1)
+	}
 	line.add = append(line.add, char)
 
 	addPiece := PieceTableRecord{false, len(line.add) - 1, 1}
 	line.pieces = slices.Insert(line.pieces, pieceInd+1, &addPiece)
 
 	newOrigPiece := PieceTableRecord{piece.isOrig, posInBuffer, lastPCharPos - pos}
-	line.pieces = slices.Insert(line.pieces, pieceInd+2, &newOrigPiece)
+	if newOrigPiece.len > 0 {
+		line.pieces = slices.Insert(line.pieces, pieceInd+2, &newOrigPiece)
+	}
 }
 
-func (ln *PieceTableLine) getPieceToUpdate(pos int) (piece *PieceTableRecord, pieceInd, lastPieceCharPos int) {
-	lastPieceCharPos = 0
+// returns nil if there are no pieces or position is further than ln.getLenght() (cannot append)
+func (ln *PieceTableLine) getPieceToUpdate(pos int) (piece *PieceTableRecord, pieceInd, nextPieceStart int) {
+	nextPieceStart = 0
 
 	for i, piece := range ln.pieces {
-		lastPieceCharPos += piece.len
-		if lastPieceCharPos <= pos {
+		nextPieceStart += piece.len
+		if pos > nextPieceStart {
 			continue
 		}
 
-		return piece, i, lastPieceCharPos
+		return piece, i, nextPieceStart
 	}
 
 	return nil, 0, 0

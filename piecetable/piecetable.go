@@ -38,12 +38,7 @@ func (pt *PieceTable) GetLineNum() int {
 }
 
 func (pt *PieceTable) GetLineLen(lineNum int) int {
-	sum := 0
-	for _, p := range pt.lines[lineNum].pieces {
-		sum += p.len
-	}
-
-	return sum
+	return pt.lines[lineNum].getLength()
 }
 
 func (pt *PieceTable) GetLines(stInd, count int) [][]rune {
@@ -53,6 +48,15 @@ func (pt *PieceTable) GetLines(stInd, count int) [][]rune {
 	}
 
 	return resLn
+}
+
+func (ln *PieceTableLine) getLength() int {
+	sum := 0
+	for _, p := range ln.pieces {
+		sum += p.len
+	}
+
+	return sum
 }
 
 func (line *PieceTableLine) getLine() []rune {
