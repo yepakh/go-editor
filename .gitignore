@@ -19,6 +19,7 @@ coverage.html
 # Go workspace
 go.work
 go.work.sum
+__debug_bin*
 
 # Environment variables
 .env

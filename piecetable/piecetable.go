@@ -11,24 +11,23 @@ type PieceTableRecord struct {
 }
 
 type PieceTableLine struct {
-	isDeleted bool
-	orig      []rune
-	add       []rune
-	pieces    []PieceTableRecord
+	orig   []rune
+	add    []rune
+	pieces []*PieceTableRecord
 }
 
 type PieceTable struct {
-	lines []PieceTableLine
+	lines []*PieceTableLine
 }
 
 func InitPieceTable(text string) *PieceTable {
 	lines := strings.Split(text, "\n")
-	pt := PieceTable{make([]PieceTableLine, len(lines))}
+	pt := PieceTable{make([]*PieceTableLine, len(lines))}
 	for i, line := range lines {
 		runes := []rune(line)
-		ptLine := PieceTableLine{false, runes, make([]rune, 0), make([]PieceTableRecord, 1)}
-		ptLine.pieces[0] = PieceTableRecord{true, 0, len(runes)}
-		pt.lines[i] = ptLine
+		ptLine := PieceTableLine{runes, make([]rune, 0), make([]*PieceTableRecord, 1)}
+		ptLine.pieces[0] = &PieceTableRecord{true, 0, len(runes)}
+		pt.lines[i] = &ptLine
 	}
 
 	return &pt
@@ -39,24 +38,28 @@ func (pt *PieceTable) GetLineNum() int {
 }
 
 func (pt *PieceTable) GetLineLen(lineNum int) int {
+	return pt.lines[lineNum].getLength()
+}
+
+func (pt *PieceTable) GetLines(stInd, count int) [][]rune {
+	resLn := make([][]rune, 0, count)
+	for i := 0; i < count && stInd+i < len(pt.lines); i++ {
+		resLn = append(resLn, pt.lines[stInd+i].getLine())
+	}
+
+	return resLn
+}
+
+func (ln *PieceTableLine) getLength() int {
 	sum := 0
-	for _, p := range pt.lines[lineNum].pieces {
+	for _, p := range ln.pieces {
 		sum += p.len
 	}
 
 	return sum
 }
 
-func (pt *PieceTable) GetLines(stInd, count int) [][]rune {
-	resLn := make([][]rune, 0, count)
-	for i := 0; i < count && i < len(pt.lines); i++ {
-		resLn = append(resLn, pt.getLine(pt.lines[stInd+i]))
-	}
-
-	return resLn
-}
-
-func (pt *PieceTable) getLine(line PieceTableLine) []rune {
+func (line *PieceTableLine) getLine() []rune {
 	outputStr := make([]rune, 0)
 	for _, v := range line.pieces {
 		if v.isOrig {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	piecetable "github.com/yepakh/go-editor/piece-table"
+	piecetable "github.com/yepakh/go-editor/piecetable"
 )
 
 var ChangesNotSaved = errors.New("cannot close file, changes not saved")
@@ -29,17 +29,71 @@ func InitBuffer(filePath string) (*Buffer, error) {
 
 	go func() {
 		for range renderChan {
-			buff.Render()
+			buff.RenderUpdates()
 		}
 	}()
 
 	return &buff, nil
 }
 
-func (buff *Buffer) Render() {
+func (buff *Buffer) DeleteChar() {
+	cursCurX, cursCurY := buff.Cursor.GetAbsoluteCursorCoords()
+	
+	prevLineLen := 0
+	if cursCurY > 0 {
+		prevLineLen = buff.Data.GetLineLen(cursCurY - 1)
+	}
+
+	isLine := buff.Data.DeleteCharBefore(cursCurY, cursCurX)
+
+	if isLine {
+		buff.Cursor.SetCursorTo(prevLineLen, cursCurY-1)
+		lineOff, charOff := buff.Cursor.GetOffsets()
+		RenderFromLine(buff.Data, cursCurY-1, lineOff, charOff)
+		return
+	}
+
+	buff.Cursor.MoveCursor(-1, 0)
+	lineOff, charOff := buff.Cursor.GetOffsets()
+	RefreshLine(buff.Data, cursCurY, lineOff, charOff)
+}
+
+func (buff *Buffer) InserNewLine() {
+	cursCurX, cursCurY := buff.Cursor.GetAbsoluteCursorCoords()
+	buff.Data.InsertNewLine(cursCurY, cursCurX)
+
+	buff.Cursor.SetCursorTo(0, cursCurY+1)
+	lineOff, charOff := buff.Cursor.GetOffsets()
+	RenderFromLine(buff.Data, cursCurY, lineOff, charOff)
+}
+
+func (buff *Buffer) InsertChar(char rune) {
+	cursCurX, cursCurY := buff.Cursor.GetAbsoluteCursorCoords()
+	buff.Data.InsertChar(cursCurY, cursCurX, char)
+
+	buff.Cursor.MoveCursor(1, 0)
+	lineOff, charOff := buff.Cursor.GetOffsets()
+	RefreshLine(buff.Data, cursCurY, lineOff, charOff)
+}
+
+func (buff *Buffer) RenderUpdates() {
+	lineOff, charOff := buff.Cursor.GetOffsets()
+	RenderBuffer(buff.Data, lineOff, charOff)
+}
+
+func (buff *Buffer) FullRender() {
+	ClearScreen()
 	lineOff, charOff := buff.Cursor.GetOffsets()
 	RenderBuffer(buff.Data, lineOff, charOff)
 	RenderFooter(buff.filepath)
+}
+
+func (buff *Buffer) Refresh() {
+	// force refreshing cursor position
+	curAbsX, curAbxY := buff.Cursor.GetAbsoluteCursorCoords()
+	buff.Cursor.SetCursorTo(curAbsX, curAbxY)
+
+	buff.FullRender()
 }
 
 func (buff *Buffer) GetFilepath() string {

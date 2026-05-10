@@ -20,7 +20,7 @@ func TestPreserveCursor(t *testing.T) {
 
 	mt.KeyPress(vt.KeyDown)
 	time.Sleep(defaultSleep)
-	validateCursorPosition(ed, 12, 1, t)
+	validateCursorPosition(ed, 13, 1, t)
 
 	mt.KeyPress(vt.KeyDown)
 	time.Sleep(defaultSleep)
