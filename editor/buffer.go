@@ -38,10 +38,16 @@ func InitBuffer(filePath string) (*Buffer, error) {
 
 func (buff *Buffer) DeleteChar() {
 	cursCurX, cursCurY := buff.Cursor.GetAbsoluteCursorCoords()
+	
+	prevLineLen := 0
+	if cursCurY > 0 {
+		prevLineLen = buff.Data.GetLineLen(cursCurY - 1)
+	}
+
 	isLine := buff.Data.DeleteCharBefore(cursCurY, cursCurX)
 
 	if isLine {
-		buff.Cursor.SetCursorTo(buff.Data.GetLineLen(cursCurY-1), cursCurY-1)
+		buff.Cursor.SetCursorTo(prevLineLen, cursCurY-1)
 		lineOff, charOff := buff.Cursor.GetOffsets()
 		RenderFromLine(buff.Data, cursCurY-1, lineOff, charOff)
 		return

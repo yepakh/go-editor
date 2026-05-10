@@ -47,9 +47,34 @@ func TestInsertChar(t *testing.T) {
 		assertPiece(pt.lines[0], 1, false, 0, 1, t)
 		assertPiece(pt.lines[0], 2, true, 2, 3, t)
 	})
+
+	t.Run("Insert at the start of a line", func(t *testing.T) {
+		pt := InitPieceTable("Hello")
+		pt.InsertChar(0, 0, 'X')
+		assertLine(pt.lines[0], "XHello", t)
+		assertPiece(pt.lines[0], 0, false, 0, 1, t)
+		assertPiece(pt.lines[0], 1, true, 0, 5, t)
+	})
+
+	t.Run("Insert at the start of an internal piece", func(t *testing.T) {
+		pt := InitPieceTable("Hello")
+		pt.InsertChar(0, 5, '!') // "Hello!" - piece 0: orig(5), piece 1: add(1)
+		pt.InsertChar(0, 5, '?') // "Hello?!" - insert '?' at start of piece 1
+		assertLine(pt.lines[0], "Hello?!", t)
+	})
 }
 
 func TestInsertNewLine(t *testing.T) {
+	t.Run("Insert new line at the start of line", func(t *testing.T) {
+		pt := InitPieceTable("Hello")
+		pt.InsertNewLine(0, 0)
+		assertLine(pt.lines[0], "", t)
+		assertLine(pt.lines[1], "Hello", t)
+		if pt.GetLineNum() != 2 {
+			t.Errorf("Expected 2 lines, got %d", pt.GetLineNum())
+		}
+	})
+
 	t.Run("Inser new line to the end of line", func(t *testing.T) {
 		pt := InitPieceTable("Hello\nWorld!")
 		assertLine(pt.lines[0], "Hello", t)
