@@ -1,6 +1,9 @@
 package editor
 
-import "github.com/yepakh/go-editor/piecetable"
+import (
+	"github.com/yepakh/go-editor/piecetable"
+	"github.com/yepakh/go-editor/render"
+)
 
 type Cursor struct {
 	charPos          int
@@ -9,11 +12,12 @@ type Cursor struct {
 	charOffset       int
 	savedCharPos     int
 	data             *piecetable.PieceTable
+	render           *render.Render
 	renderBufChannel chan<- struct{}
 }
 
-func InitCursor(buffer *Buffer, renderBufChannel chan<- struct{}) *Cursor {
-	return &Cursor{0, 0, 0, 0, 0, buffer.Data, renderBufChannel}
+func InitCursor(buffer *Buffer, r *render.Render, renderBufChannel chan<- struct{}) *Cursor {
+	return &Cursor{0, 0, 0, 0, 0, buffer.Data, r, renderBufChannel}
 }
 
 func (cursor *Cursor) GetAbsoluteCursorCoords() (charPos, line int) {
@@ -38,7 +42,7 @@ func (cursor *Cursor) GetOffsets() (lineOff, charOff int) {
 }
 
 func (cursor *Cursor) renderCursor(renderBuf bool) {
-	scrW, scrH := GetContentSceenSize()
+	scrW, scrH := cursor.render.GetContentSceenSize()
 
 	scrMinY, scrMaxY := cursor.lineOffset, cursor.lineOffset+scrH-1
 	if cursor.line < scrMinY {
@@ -59,7 +63,7 @@ func (cursor *Cursor) renderCursor(renderBuf bool) {
 	}
 
 	scrX, scrY := cursor.getRelativeCursorCoords()
-	SetRenderCursor(scrX, scrY)
+	cursor.render.SetRenderCursor(scrX, scrY)
 
 	if renderBuf {
 		cursor.renderBufChannel <- struct{}{}

@@ -4,7 +4,8 @@ import (
 	"errors"
 	"os"
 
-	piecetable "github.com/yepakh/go-editor/piecetable"
+	"github.com/yepakh/go-editor/piecetable"
+	"github.com/yepakh/go-editor/render"
 )
 
 var ChangesNotSaved = errors.New("cannot close file, changes not saved")
@@ -14,18 +15,19 @@ type Buffer struct {
 	hasUnsavedChanges bool
 	Data              *piecetable.PieceTable
 	Cursor            *Cursor
+	Render            *render.Render
 }
 
-func InitBuffer(filePath string) (*Buffer, error) {
+func InitBuffer(filePath string, r *render.Render) (*Buffer, error) {
 	if err := IsValidPathOrEmpty(filePath); err != nil && !errors.Is(err, ErrEmptyPath) {
 		return nil, err
 	}
 
-	buff := Buffer{filePath, false, nil, nil}
+	buff := Buffer{filePath, false, nil, nil, r}
 	buff.load()
 
 	renderChan := make(chan struct{})
-	buff.Cursor = InitCursor(&buff, renderChan)
+	buff.Cursor = InitCursor(&buff, r, renderChan)
 
 	go func() {
 		for range renderChan {
@@ -38,7 +40,7 @@ func InitBuffer(filePath string) (*Buffer, error) {
 
 func (buff *Buffer) DeleteChar() {
 	cursCurX, cursCurY := buff.Cursor.GetAbsoluteCursorCoords()
-	
+
 	prevLineLen := 0
 	if cursCurY > 0 {
 		prevLineLen = buff.Data.GetLineLen(cursCurY - 1)
@@ -49,13 +51,13 @@ func (buff *Buffer) DeleteChar() {
 	if isLine {
 		buff.Cursor.SetCursorTo(prevLineLen, cursCurY-1)
 		lineOff, charOff := buff.Cursor.GetOffsets()
-		RenderFromLine(buff.Data, cursCurY-1, lineOff, charOff)
+		buff.Render.RenderFromLine(buff.Data, cursCurY-1, lineOff, charOff)
 		return
 	}
 
 	buff.Cursor.MoveCursor(-1, 0)
 	lineOff, charOff := buff.Cursor.GetOffsets()
-	RefreshLine(buff.Data, cursCurY, lineOff, charOff)
+	buff.Render.RefreshLine(buff.Data, cursCurY, lineOff, charOff)
 }
 
 func (buff *Buffer) InserNewLine() {
@@ -64,7 +66,7 @@ func (buff *Buffer) InserNewLine() {
 
 	buff.Cursor.SetCursorTo(0, cursCurY+1)
 	lineOff, charOff := buff.Cursor.GetOffsets()
-	RenderFromLine(buff.Data, cursCurY, lineOff, charOff)
+	buff.Render.RenderFromLine(buff.Data, cursCurY, lineOff, charOff)
 }
 
 func (buff *Buffer) InsertChar(char rune) {
@@ -73,19 +75,19 @@ func (buff *Buffer) InsertChar(char rune) {
 
 	buff.Cursor.MoveCursor(1, 0)
 	lineOff, charOff := buff.Cursor.GetOffsets()
-	RefreshLine(buff.Data, cursCurY, lineOff, charOff)
+	buff.Render.RefreshLine(buff.Data, cursCurY, lineOff, charOff)
 }
 
 func (buff *Buffer) RenderUpdates() {
 	lineOff, charOff := buff.Cursor.GetOffsets()
-	RenderBuffer(buff.Data, lineOff, charOff)
+	buff.Render.RenderBuffer(buff.Data, lineOff, charOff)
 }
 
 func (buff *Buffer) FullRender() {
-	ClearScreen()
+	buff.Render.ClearScreen()
 	lineOff, charOff := buff.Cursor.GetOffsets()
-	RenderBuffer(buff.Data, lineOff, charOff)
-	RenderFooter(buff.filepath)
+	buff.Render.RenderBuffer(buff.Data, lineOff, charOff)
+	buff.Render.RenderFooter(buff.filepath)
 }
 
 func (buff *Buffer) Refresh() {

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v3/vt"
+	"github.com/yepakh/go-editor/render"
 )
 
 type testCase struct {
@@ -14,18 +15,18 @@ type testCase struct {
 }
 
 func TestInitialization(t *testing.T) {
-	th := InitTheme()
+	th := render.InitTheme()
 
 	expect := make([]cellInfo, 0)
-	expect = append(expect, getCellInfoFromString("    1 ", 0, 0, &th.rightPanelStyle)...)
-	expect = append(expect, getCellInfoFromString("line one", 6, 0, &th.contentStyle)...)
-	expect = append(expect, getCellInfoFromString("    2 ", 0, 1, &th.rightPanelStyle)...)
-	expect = append(expect, getCellInfoFromString("line two", 6, 1, &th.contentStyle)...)
-	expect = append(expect, getCellInfoFromString("   10 ", 0, 9, &th.rightPanelStyle)...)
-	expect = append(expect, getCellInfoFromString("line ten", 6, 9, &th.contentStyle)...)
+	expect = append(expect, getCellInfoFromString("    1 ", 0, 0, &th.RightPanelStyle)...)
+	expect = append(expect, getCellInfoFromString("line one", 6, 0, &th.ContentStyle)...)
+	expect = append(expect, getCellInfoFromString("    2 ", 0, 1, &th.RightPanelStyle)...)
+	expect = append(expect, getCellInfoFromString("line two", 6, 1, &th.ContentStyle)...)
+	expect = append(expect, getCellInfoFromString("   10 ", 0, 9, &th.RightPanelStyle)...)
+	expect = append(expect, getCellInfoFromString("line ten", 6, 9, &th.ContentStyle)...)
 
 	fullPath, _ := filepath.Abs(simpleFile)
-	expect = append(expect, getCellInfoFromString(fullPath, 0, 23, &th.footerStyle)...)
+	expect = append(expect, getCellInfoFromString(fullPath, 0, 23, &th.FooterStyle)...)
 
 	ed, _, mt := getTestEditor(simpleFile)
 	ed.Start()
@@ -35,7 +36,7 @@ func TestInitialization(t *testing.T) {
 }
 
 func TestResizeAndScroll(t *testing.T) {
-	th := InitTheme()
+	th := render.InitTheme()
 	ed, sc, mt := getTestEditor(simpleFile)
 	ed.Start()
 
@@ -58,15 +59,15 @@ func TestResizeAndScroll(t *testing.T) {
 	}
 
 	expect := make([]cellInfo, 0)
-	expect = append(expect, getCellInfoFromString("    1 ", 0, 0, &th.rightPanelStyle)...)
-	expect = append(expect, getCellInfoFromString("line one", 6, 0, &th.contentStyle)...)
-	expect = append(expect, getCellInfoFromString("    2 ", 0, 1, &th.rightPanelStyle)...)
-	expect = append(expect, getCellInfoFromString("line two", 6, 1, &th.contentStyle)...)
-	expect = append(expect, getCellInfoFromString("    4 ", 0, 3, &th.rightPanelStyle)...)
-	expect = append(expect, getCellInfoFromString("line four", 6, 3, &th.contentStyle)...)
+	expect = append(expect, getCellInfoFromString("    1 ", 0, 0, &th.RightPanelStyle)...)
+	expect = append(expect, getCellInfoFromString("line one", 6, 0, &th.ContentStyle)...)
+	expect = append(expect, getCellInfoFromString("    2 ", 0, 1, &th.RightPanelStyle)...)
+	expect = append(expect, getCellInfoFromString("line two", 6, 1, &th.ContentStyle)...)
+	expect = append(expect, getCellInfoFromString("    4 ", 0, 3, &th.RightPanelStyle)...)
+	expect = append(expect, getCellInfoFromString("line four", 6, 3, &th.ContentStyle)...)
 
 	fullPath, _ := filepath.Abs(simpleFile)
-	expect = append(expect, getCellInfoFromString(string(fullPath[:20]), 0, 4, &th.footerStyle)...)
+	expect = append(expect, getCellInfoFromString(string(fullPath[:20]), 0, 4, &th.FooterStyle)...)
 
 	validateTerm(mt, expect, t)
 }

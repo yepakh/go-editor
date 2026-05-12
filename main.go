@@ -18,11 +18,11 @@ func main() {
 	path := getPath()
 
 	if path == "" {
-		ed, err = editor.Init(&screen)
+		ed, err = editor.InitEditor(&screen)
 	} else if info, err := os.Stat(path); err == nil && info.IsDir() {
-		ed, err = editor.InitFromDir(&screen, path)
+		ed, err = editor.InitEditor(&screen, editor.WithDirectory(path))
 	} else {
-		ed, err = editor.InitFromFile(&screen, path)
+		ed, err = editor.InitEditor(&screen, editor.WithFile(path))
 	}
 
 	quitCh := ed.Start()

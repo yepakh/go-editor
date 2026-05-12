@@ -51,7 +51,7 @@ func getTestEditor(filePath string) (*Editor, tcell.Screen, vt.MockTerm) {
 		log.Fatal(err)
 	}
 
-	ed, err := InitFromFile(&screen, filePath)
+	ed, err := InitEditor(&screen, WithFile(filePath))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v3/vt"
+	"github.com/yepakh/go-editor/render"
 )
 
 func TestBufferModifications(t *testing.T) {
-	th := InitTheme()
+	th := render.InitTheme()
 
 	t.Run("InsertChar rendering", func(t *testing.T) {
 		ed, _, mt := getTestEditor(simpleFile)
@@ -23,7 +24,7 @@ func TestBufferModifications(t *testing.T) {
 		validateCursorPosition(ed, 1, 0, t)
 
 		expect := make([]cellInfo, 0)
-		expect = append(expect, getCellInfoFromString("xline one", 6, 0, &th.contentStyle)...)
+		expect = append(expect, getCellInfoFromString("xline one", 6, 0, &th.ContentStyle)...)
 		validateTerm(mt, expect, t)
 	})
 
@@ -45,11 +46,11 @@ func TestBufferModifications(t *testing.T) {
 		validateCursorPosition(ed, 0, 1, t)
 
 		expect := make([]cellInfo, 0)
-		expect = append(expect, getCellInfoFromString("line one", 6, 0, &th.contentStyle)...)
-		expect = append(expect, getCellInfoFromString("    2 ", 0, 1, &th.rightPanelStyle)...)
-		expect = append(expect, getCellInfoFromString("", 6, 1, &th.contentStyle)...)
-		expect = append(expect, getCellInfoFromString("    3 ", 0, 2, &th.rightPanelStyle)...)
-		expect = append(expect, getCellInfoFromString("line two", 6, 2, &th.contentStyle)...)
+		expect = append(expect, getCellInfoFromString("line one", 6, 0, &th.ContentStyle)...)
+		expect = append(expect, getCellInfoFromString("    2 ", 0, 1, &th.RightPanelStyle)...)
+		expect = append(expect, getCellInfoFromString("", 6, 1, &th.ContentStyle)...)
+		expect = append(expect, getCellInfoFromString("    3 ", 0, 2, &th.RightPanelStyle)...)
+		expect = append(expect, getCellInfoFromString("line two", 6, 2, &th.ContentStyle)...)
 		validateTerm(mt, expect, t)
 	})
 
@@ -70,7 +71,7 @@ func TestBufferModifications(t *testing.T) {
 		validateCursorPosition(ed, 7, 0, t)
 
 		expect := make([]cellInfo, 0)
-		expect = append(expect, getCellInfoFromString("line on ", 6, 0, &th.contentStyle)...) // space because of how it might be rendered or cleared
+		expect = append(expect, getCellInfoFromString("line on ", 6, 0, &th.ContentStyle)...) // space because of how it might be rendered or cleared
 		validateTerm(mt, expect, t)
 	})
 
@@ -91,7 +92,7 @@ func TestBufferModifications(t *testing.T) {
 		validateCursorPosition(ed, 8, 0, t)
 
 		expect := make([]cellInfo, 0)
-		expect = append(expect, getCellInfoFromString("line oneline two", 6, 0, &th.contentStyle)...)
+		expect = append(expect, getCellInfoFromString("line oneline two", 6, 0, &th.ContentStyle)...)
 		validateTerm(mt, expect, t)
 	})
 }

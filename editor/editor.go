@@ -1,71 +1,79 @@
 package editor
 
 import (
-	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/gdamore/tcell/v3"
+	"github.com/yepakh/go-editor/render"
 )
 
 type Editor struct {
 	screen          *tcell.Screen
+	render          *render.Render
+	screenEventCh   <-chan tcell.Event
 	initDirectory   string
 	loadedBuffers   []*Buffer
 	displayedBuffer *Buffer
 }
 
-func Init(screen *tcell.Screen) (*Editor, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get current directory: %v", err)
-	}
+type Option func(*Editor) error
 
-	return InitFromDir(screen, cwd)
-}
-
-func InitFromDir(screen *tcell.Screen, dir string) (*Editor, error) {
+func InitEditor(screen *tcell.Screen, options ...Option) (*Editor, error) {
 	ed := Editor{}
 	ed.screen = screen
-	ed.initDirectory = dir
 
-	err := ed.loadBuffer("")
-	if err != nil {
-		return nil, err
+	r, eventChan := render.InitRenderScreen(*ed.screen)
+	ed.render = r
+	ed.screenEventCh = eventChan
+
+	for _, opt := range options {
+		err := opt(&ed)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &ed, nil
 }
 
-func InitFromFile(screen *tcell.Screen, filePath string) (*Editor, error) {
-	dir := filepath.Dir(filePath)
-	absPath, _ := filepath.Abs(filePath)
+func WithDirectory(dir string) Option {
+	return func(ed *Editor) error {
+		ed.initDirectory = dir
 
-	ed := Editor{}
-	ed.screen = screen
-	ed.initDirectory = dir
+		err := ed.loadBuffer("")
+		if err != nil {
+			return err
+		}
 
-	err := ed.loadBuffer(absPath)
-	if err != nil {
-		return nil, err
+		return nil
 	}
+}
+func WithFile(filePath string) Option {
+	return func(ed *Editor) error {
+		dir := filepath.Dir(filePath)
+		absPath, _ := filepath.Abs(filePath)
 
-	return &ed, nil
+		ed.initDirectory = dir
+		err := ed.loadBuffer(absPath)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
 }
 
 func (ed *Editor) Start() chan struct{} {
-	eventChan := InitRenderScreen(*ed.screen)
-
 	ed.displayedBuffer = ed.loadedBuffers[0]
 	ed.displayedBuffer.FullRender()
 
 	quit := make(chan struct{})
-	go ed.handleUserInput(eventChan, quit)
+	go ed.handleUserInput(ed.screenEventCh, quit)
 	return quit
 }
 
 func (ed *Editor) Close() {
-	CloseRenderScreen()
+	ed.render.CloseRenderScreen()
 }
 
 func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, quitCh chan struct{}) {
@@ -89,7 +97,7 @@ func (ed *Editor) handleUserInput(evChan <-chan tcell.Event, quitCh chan struct{
 }
 
 func (ed *Editor) handleResizeEvent() {
-	RenderSync()
+	ed.render.RenderSync()
 	ed.displayedBuffer.Refresh()
 }
 
@@ -106,7 +114,7 @@ func (ed *Editor) handleCloseEvent() bool {
 }
 
 func (ed *Editor) loadBuffer(filePath string) error {
-	newBuff, err := InitBuffer(filePath)
+	newBuff, err := InitBuffer(filePath, ed.render)
 	if err != nil {
 		return err
 	}
