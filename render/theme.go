@@ -1,13 +1,13 @@
-package editor
+package render
 
 import (
 	"github.com/gdamore/tcell/v3"
 )
 
 type Theme struct {
-	contentStyle    tcell.Style
-	footerStyle     tcell.Style
-	rightPanelStyle tcell.Style
+	ContentStyle    tcell.Style
+	FooterStyle     tcell.Style
+	RightPanelStyle tcell.Style
 }
 
 func InitTheme() Theme {
