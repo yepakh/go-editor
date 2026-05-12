@@ -13,7 +13,7 @@ const simpleFile = "testdata/simple.txt"
 const longFile = "testdata/long.txt"
 const emptyFile = "testdata/empty.txt"
 const noFile = ""
-const defaultSleep = time.Millisecond * 10
+const defaultSleep = time.Millisecond * 30
 
 type cellInfo struct {
 	X    vt.Col
