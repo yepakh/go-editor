@@ -9,7 +9,7 @@ import (
 )
 
 func TestPreserveCursor(t *testing.T) {
-	ed, _, mt := getTestEditor(longFile)
+	ed, mt := getTestEditor(longFile)
 	ed.Start()
 	validateCursorPosition(ed, 0, 0, t)
 
@@ -30,7 +30,7 @@ func TestPreserveCursor(t *testing.T) {
 
 func TestScroll(t *testing.T) {
 	th := render.InitTheme()
-	ed, _, mt := getTestEditor(simpleFile)
+	ed, mt := getTestEditor(simpleFile)
 	mt.SetSize(vt.Coord{X: vt.Col(20), Y: vt.Row(5)})
 	ed.Start()
 
