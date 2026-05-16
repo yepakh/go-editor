@@ -4,25 +4,24 @@ import (
 	"log"
 	"os"
 
-	"github.com/gdamore/tcell/v3"
 	"github.com/yepakh/go-editor/editor"
 )
 
 func main() {
-	screen, err := tcell.NewScreen()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	var ed *editor.Editor
+	var err error
 	path := getPath()
 
 	if path == "" {
-		ed, err = editor.InitEditor(&screen)
+		ed, err = editor.InitEditor()
 	} else if info, err := os.Stat(path); err == nil && info.IsDir() {
-		ed, err = editor.InitEditor(&screen, editor.WithDirectory(path))
+		ed, err = editor.InitEditor(editor.WithDirectory(path))
 	} else {
-		ed, err = editor.InitEditor(&screen, editor.WithFile(path))
+		ed, err = editor.InitEditor(editor.WithFile(path))
+	}
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	quitCh := ed.Start()

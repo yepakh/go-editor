@@ -28,19 +28,20 @@ func TestInitialization(t *testing.T) {
 	fullPath, _ := filepath.Abs(simpleFile)
 	expect = append(expect, getCellInfoFromString(fullPath, 0, 23, &th.FooterStyle)...)
 
-	ed, _, mt := getTestEditor(simpleFile)
+	ed, mt := getTestEditor(simpleFile)
 	ed.Start()
 	mt.Drain()
+	time.Sleep(defaultSleep * 2)
 
 	validateTerm(mt, expect, t)
 }
 
 func TestResizeAndScroll(t *testing.T) {
 	th := render.InitTheme()
-	ed, sc, mt := getTestEditor(simpleFile)
+	ed, mt := getTestEditor(simpleFile)
 	ed.Start()
 
-	currW, currH := sc.Size()
+	currW, currH := ed.screen.Size()
 	mtSize := mt.Backend().GetSize()
 	if currW != int(mtSize.X) || currH != int(mtSize.Y) {
 		t.Errorf("Incorrect init screen size. Actual: %d, %d; Expected %v, %v", currW, currH, mtSize.X, mtSize.Y)
@@ -53,7 +54,7 @@ func TestResizeAndScroll(t *testing.T) {
 	time.Sleep(defaultSleep)
 	mt.Drain()
 
-	currW, currH = sc.Size()
+	currW, currH = ed.screen.Size()
 	if currW != newW || currH != newH {
 		t.Errorf("Incorrect screen size after resize. Actual: %d, %d; Expected %v, %v", currW, currH, newW, newH)
 	}

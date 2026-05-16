@@ -12,7 +12,7 @@ func TestBufferModifications(t *testing.T) {
 	th := render.InitTheme()
 
 	t.Run("InsertChar rendering", func(t *testing.T) {
-		ed, _, mt := getTestEditor(simpleFile)
+		ed, mt := getTestEditor(simpleFile)
 		ed.Start()
 		time.Sleep(defaultSleep)
 
@@ -29,7 +29,7 @@ func TestBufferModifications(t *testing.T) {
 	})
 
 	t.Run("InsertNewLine rendering", func(t *testing.T) {
-		ed, _, mt := getTestEditor(simpleFile)
+		ed, mt := getTestEditor(simpleFile)
 		ed.Start()
 		time.Sleep(defaultSleep)
 
@@ -55,7 +55,7 @@ func TestBufferModifications(t *testing.T) {
 	})
 
 	t.Run("DeleteChar rendering", func(t *testing.T) {
-		ed, _, mt := getTestEditor(simpleFile)
+		ed, mt := getTestEditor(simpleFile)
 		ed.Start()
 		time.Sleep(defaultSleep)
 
@@ -76,7 +76,7 @@ func TestBufferModifications(t *testing.T) {
 	})
 
 	t.Run("DeleteChar at start of line (Merge)", func(t *testing.T) {
-		ed, _, mt := getTestEditor(simpleFile)
+		ed, mt := getTestEditor(simpleFile)
 		ed.Start()
 		time.Sleep(defaultSleep)
 

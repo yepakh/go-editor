@@ -8,7 +8,7 @@ import (
 )
 
 type Editor struct {
-	screen          *tcell.Screen
+	screen          tcell.Screen
 	render          *render.Render
 	screenEventCh   <-chan tcell.Event
 	initDirectory   string
@@ -18,11 +18,16 @@ type Editor struct {
 
 type Option func(*Editor) error
 
-func InitEditor(screen *tcell.Screen, options ...Option) (*Editor, error) {
+func InitEditor(options ...Option) (*Editor, error) {
+	screen, err := tcell.NewScreen()
+	if err != nil {
+		return nil, err
+	}
+
 	ed := Editor{}
 	ed.screen = screen
 
-	r, eventChan := render.InitRenderScreen(*ed.screen)
+	r, eventChan := render.InitRenderScreen(ed.screen)
 	ed.render = r
 	ed.screenEventCh = eventChan
 

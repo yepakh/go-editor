@@ -41,19 +41,14 @@ func getCellInfoFromString(s string, x, y int, st *tcell.Style) []cellInfo {
 	return cells
 }
 
-func getTestEditor(filePath string) (*Editor, tcell.Screen, vt.MockTerm) {
+func getTestEditor(filePath string) (*Editor, vt.MockTerm) {
 	mockTty := vt.NewMockTerm(vt.MockOptColors(256 * 256 * 256))
 	mockScreen, err := tcell.NewTerminfoScreenFromTty(mockTty)
 	tcell.ShimScreen(mockScreen)
 
-	screen, err := tcell.NewScreen()
+	ed, err := InitEditor(WithFile(filePath))
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	ed, err := InitEditor(&screen, WithFile(filePath))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return ed, screen, mockTty
+	return ed, mockTty
 }
